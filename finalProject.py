@@ -621,7 +621,13 @@ class Game(Frame):
         if(Game.currentRoom == None):
             Game.player_input.delete(0, END)
             return
-        
+
+        if(Game.currentRoom.name == "Shop"):
+            pass
+
+        if(Game.currentRoom.name != "Shop"):
+            pass
+                
         # handle verbs and nouns
         words = action.split()
 
