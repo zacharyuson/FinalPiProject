@@ -50,11 +50,10 @@ class Enemy(object):
         self.hp = hp
         self.damage = damage
 
-class Goblin(Enemy):
-    def __init__(self, name, hp, damage):
-        Enemy.__init__(self, name ,hp, damage)
 
-goblin = Goblin("Goblin", 10, 5)
+goblin = Enemy("Goblin", 10, 5)
+boar = Enemy("Boar", 5, 7)
+knight = Enemy("Knight", 20, 10)
 
 # the player class
 class Player(object):
@@ -75,19 +74,8 @@ class Player(object):
     def hp(self, value):
         self._hp = value
 
-    # a function that subtracts player damage from enemy health
-    # and if the enemy isn't killed it's attack from yours
-    def attack(self, enemy):
-        best_weapon = None
-        max_dmg = 0
-        for i in self.inventory:
-            if isinstance(i, Weapon):
-                if i.damage > max_dmg:
-                    max_dmg = i.damage
-                    best_weapon = i
-
-        enemy.hp -= best_weapon.damage
-        self.hp -= enemy.damage
+    
+        
 
 player = Player()
 
@@ -104,7 +92,8 @@ class Room(object):
         self.exits = {}
         self.items = {}
         self.grabbables = []
-        self.enemies = []
+        self.enemies = {}
+        self.enemiesDamage = {}
         self.NPCs = []
 
     # getters and setters for the instance variables
@@ -164,9 +153,10 @@ class Room(object):
     def NPCs(self, value):
         self._NPCs = value
 
-    def addEnemy(self, enemy):
+    def addEnemy(self, name, hp, damage):
         # append the enemy to the list
-        self._enemies.append(enemy)
+        self._enemies[name] = hp
+        self.enemiesDamage[name] = damage
 
     def delEnemy(self, enemy):
         # remove the enemy from the list
@@ -205,6 +195,27 @@ class Room(object):
     def delGrabbable(self, item):
         # remove the item from the list
         self._grabbables.remove(item)
+
+    # a function that subtracts player damage from enemy health
+    # and if the enemy isn't killed it's attack from yours
+    def attack(self, enemy, pAttack, eAttack):
+        best_weapon = None
+        max_dmg = 0
+        for i in player.inventory:
+            if isinstance(i, Weapon):
+                if i.damage > max_dmg:
+                    max_dmg = i.damage
+                    best_weapon = i
+        pAttack = i.damage
+
+        # Change the enmy's hp based on the strength of the attack
+        self._enemies[enemy] -= pAttack
+        # remove the enemy if it dies
+        if(self._enemies[enemy] <= 0):
+            del self._enemies[enemy]
+        # or they retailiate
+        else:
+            player.hp -= eAttack
 
     # returns a string description of the room
     def __str__(self):
@@ -323,7 +334,7 @@ class Game(Frame):
         r6.addExit("south", r5)
         r6.addExit("east", r7)
         r6.addExit("west", r8)
-        r6.addEnemy("goblin")
+        r6.addEnemy("boar", 7, 7)
         r7.addExit("west", r6)
         r7.addExit("north", r9)
         r8.addExit("east", r6)
@@ -338,7 +349,7 @@ class Game(Frame):
         r12.addExit("south", r11)
         r12.addExit("east", r13)
         r12.addExit("west", r14)
-        r12.addEnemy("goblin")
+        r12.addEnemy("boar", 7, 7)
         r13.addExit("north", r15)
         r13.addExit("east", r17)
         r13.addExit("west", r12)
@@ -355,7 +366,7 @@ class Game(Frame):
         r18.addExit("east", r19)
         r19.addExit("west", r18)
         r19.addExit("east", r101)
-        r19.addEnemy("goblin")
+        r19.addEnemy("boar", 7, 7)
         r101.addExit("west", r19)
         r101.addExit("east", r102)
         r102.addExit("west", r101)
@@ -365,7 +376,7 @@ class Game(Frame):
         r21.addExit("west", r22)
         r22.addExit("east", r21)
         r22.addExit("west", r103)
-        r22.addEnemy("goblin")
+        r22.addEnemy("boar", 7, 7)
         r103.addExit("east", r22)
         r103.addExit("west", r104)
         r104.addExit("east", r103)
@@ -377,12 +388,12 @@ class Game(Frame):
         r24.addExit("north", r25)
         r25.addExit("south", r24)
         r25.addExit("north", r26)
-        r25.addEnemy("goblin")
+        r25.addEnemy("goblin", 10, 5)
         r26.addExit("south", r25)
         r26.addExit("north", r27)
         r27.addExit("south", r26)
         r27.addExit("north", r28)
-        r27.addEnemy("goblin")
+        r27.addEnemy("goblin", 10, 5)
         r28.addExit("south", r27)
         r28.addExit("east", r29)
         r28.addExit("west", r30)
@@ -402,20 +413,20 @@ class Game(Frame):
         r34.addExit("south", r106)
         r106.addExit("north", r34)
         r106.addExit("south", r36)
-        r106.addEnemy("goblin")
+        r106.addEnemy("goblin", 10, 5)
         r35.addExit("south", r33)
-        r35.addEnemy("goblin")
+        r35.addEnemy("goblin", 10, 5)
         r36.addExit("north", r106)
         r37.addExit("south", r32)
         r37.addExit("north", r105)
         r105.addExit("south", r37)
         r105.addExit("north", r39)
-        r105.addEnemy("goblin")
+        r105.addEnemy("goblin", 10, 5)
         r38.addExit("north", r32)
         r38.addExit("south", r40)
         r39.addExit("south", r105)
         r40.addExit("north", r38)
-        r40.addEnemy("goblin")
+        r40.addEnemy("goblin", 10, 5)
         r41.addExit("south", r40)
 
         # supplement code to add features to the created rooms
@@ -457,7 +468,7 @@ class Game(Frame):
         r43.addExit("north", r44)
         r44.addExit("north", r45)
         r44.addExit("south", r43)
-        r44.addEnemy("goblin")
+        r44.addEnemy("knight", 20, 10)
         r45.addExit("east", r46)
         r45.addExit("west", r47)
         r45.addExit("south", r44)
@@ -468,11 +479,11 @@ class Game(Frame):
         r48.addExit("west", r46)
         r48.addExit("north", r50)
         r48.addExit("south", r51)
-        r48.addEnemy("goblin")
+        r48.addEnemy("knight", 20, 10)
         r49.addExit("east", r47)
         r49.addExit("north", r60)
         r49.addExit("south", r61)
-        r49.addEnemy("goblin")
+        r49.addEnemy("knight", 20, 10)
         r50.addExit("south", r48)
         r50.addExit("north", r52)
         r51.addExit("north", r48)
@@ -487,10 +498,10 @@ class Game(Frame):
         r55.addExit("east", r57)
         r56.addExit("west", r54)
         r56.addExit("east", r58)
-        r56.addEnemy("goblin")
+        r56.addEnemy("knight", 20, 10)
         r57.addExit("west", r55)
         r57.addExit("east", r59)
-        r57.addEnemy("goblin")
+        r57.addEnemy("knight", 20, 10)
         r59.addExit("west", r57)
         r60.addExit("north", r62)
         r60.addExit("south", r49)
@@ -506,10 +517,10 @@ class Game(Frame):
         r65.addExit("west", r67)
         r66.addExit("east", r64)
         r66.addExit("west", r69)
-        r66.addEnemy("goblin")
+        r66.addEnemy("knight", 20, 10)
         r67.addExit("east", r65)
         r67.addExit("west", r68)
-        r67.addEnemy("goblin")
+        r67.addEnemy("knight", 20, 10)
         r69.addExit("east", r66)
 
         # Fortress Level 2
@@ -569,22 +580,22 @@ class Game(Frame):
         r75.addExit("north", r94)
         r75.addExit("east", r71)
         r75.addExit("west", r92)
-        r75.addEnemy("goblin")
+        r75.addEnemy("knight", 20, 10)
         r76.addExit("south", r72)
         r76.addExit("north", r83)
         r76.addExit("east", r85)
         r76.addExit("west", r71)
-        r76.addEnemy("goblin")
+        r76.addEnemy("knight", 20, 10)
         r77.addExit("south", r88)
         r77.addExit("north", r72)
         r77.addExit("east", r86)
         r77.addExit("west", r73)
-        r77.addEnemy("goblin")
+        r77.addEnemy("knight", 20, 10)
         r78.addExit("south", r89)
         r78.addExit("north", r74)
         r78.addExit("east", r73)
         r78.addExit("west", r91)
-        r78.addEnemy("goblin")
+        r78.addEnemy("knight", 20, 10)
         r79.addExit("south", r71)
         r79.addExit("north", r95)
         r79.addExit("east", r83)
@@ -606,7 +617,7 @@ class Game(Frame):
         r83.addExit("west", r79)
         r84.addExit("south", r85)
         r84.addExit("west", r83)
-        r84.addEnemy("goblin")
+        r84.addEnemy("knight", 20, 10)
         r85.addExit("north", r84)
         r85.addExit("south", r80)
         r85.addExit("west", r76)
@@ -626,24 +637,24 @@ class Game(Frame):
         r91.addExit("north", r82)
         r91.addExit("south", r90)
         r91.addExit("east", r78)
-        r91.addEnemy("goblin")
+        r91.addEnemy("knight", 20, 10)
         r92.addExit("north", r93)
         r92.addExit("south", r82)
         r92.addExit("east", r75)
         r93.addExit("south", r92)
         r93.addExit("east", r94)
-        r93.addEnemy("goblin")
+        r93.addEnemy("knight", 20, 10)
         r94.addExit("south", r75)
         r94.addExit("east", r79)
         r94.addExit("west", r93)
         r95.addExit("south", r79)
-        r95.addEnemy("goblin")
+        r95.addEnemy("knight", 20, 10)
         r96.addExit("west", r80)
-        r96.addEnemy("goblin")
+        r96.addEnemy("knight", 20, 10)
         r97.addExit("north", r81)
-        r97.addEnemy("goblin")
+        r97.addEnemy("knight", 20, 10)
         r98.addExit("east", r82)
-        r98.addEnemy("goblin")
+        r98.addEnemy("knight", 20, 10)
 
         # Fortress Level 3
         r99 = Room("Floor 3 Stairway", "stairs.gif")
@@ -657,7 +668,7 @@ class Game(Frame):
 
         r99.addExit("down", r100)
         r100.addExit("up", r99)
-        r100.addEnemy("goblin")
+        r100.addEnemy("knight", 20, 10)
 
         # supplement code to add features to the created rooms
 
@@ -827,39 +838,33 @@ class Game(Frame):
                         Game.currentRoom.delGrabbable(grabbable)
                         break
 
-            # process attack
-            elif (verb == "attack"):
+            #process attack
+            elif(verb == "attack"):
                 # default response
-                response = "I don't see that creature."
+                response = "I don't see that creature"
 
                 # check currentRoom's creatures
                 for enemy in Game.currentRoom.enemies:
-                    if (noun == enemy):
+                    n = len(Game.currentRoom.enemies)
+                    if(noun == enemy):
                         # set the response
                         # calculate the attack sequence
-                        if enemy == "goblin":
-                            enemy = goblin
-
-                        player.attack(enemy)
-
+                        Game.currentRoom.attack(enemy, 1, Game.currentRoom.enemiesDamage[enemy])
+                        best_weapon = None
+                        max_dmg = 0
                         for i in player.inventory:
                             if isinstance(i, Weapon):
-                                weapon_damage = i.damage
-                            else:
-                                pass
-
+                                if i.damage > max_dmg:
+                                    max_dmg = i.damage
+                                    best_weapon = i
+                        pAttack = i.damage
+                        response = "Attacked {} for {} damage, took {}. You have {} hp remaining".format(enemy, pAttack, Game.currentRoom.enemiesDamage[enemy], player.hp)
                         # Check if the enemy was defeated
-                        if (enemy.hp <= 0):
+                        if(n > len(Game.currentRoom.enemies)):
                             # set the response and break
-                            response = "You defeated {}".format(enemy.name)
+                            response = "you defeated {}".format(enemy)
                             break
-
-                        else:
-                            response = "Attacked {} for {} damage, took {}. You have {} hp remaining".format(enemy.name,
-                                                                                                             weapon_damage,
-                                                                                                             enemy.damage,
-                                                                                                             player.hp)
-
+                        
             elif (verb == "talk"):
                 # default response
                 response = "I don't see that NPC."
