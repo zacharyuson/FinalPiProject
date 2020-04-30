@@ -170,11 +170,12 @@ class Game(Frame):
         r2 = Room("Shop", "shop.gif")
         r3 = Room("Slums", "slums.gif")
         r4 = Room("Residential Area", "inn.gif")
+        r107 = Room("Residential 2", "inn.gif")
+        r108 = Room("Slums 2", "slums.gif")
 
         r1.addExit("east", r2)
         r1.addExit("west", r3)
         r1.addExit("south", r4)
-        r1.addEnemy("slime", 2, 1)
         r2.addExit("west", r1)
         r3.addExit("east", r1)
         r4.addExit("north", r1)
