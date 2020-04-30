@@ -323,7 +323,7 @@ class Game(Frame):
         r6.addExit("south", r5)
         r6.addExit("east", r7)
         r6.addExit("west", r8)
-        r6.addEnemy("boar", 7, 7)
+        r6.addEnemy("boar", 7, 1000)
         r7.addExit("west", r6)
         r7.addExit("north", r9)
         r8.addExit("east", r6)
