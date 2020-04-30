@@ -28,21 +28,9 @@ class NPC(object):
         self.hp = hp
         self.damage = damage
 
-class Villager(NPC):
-    def __init__(self, hp, damage):
-        NPC.__init__(self, hp, damage)
-
-class Elf(NPC):
-    def __init__(self, hp, damage):
-        NPC.__init__(self, hp, damage)
-
-class LostVillager(NPC):
-    def __init__(self, hp, damage):
-        NPC.__init__(self, hp, damage)
-
-villager = Villager(20, 5)
-elf = Elf(15, 15)
-lost_villager = LostVillager(10, 2)
+villager = NPC(20, 5)
+elf = NPC(15, 15)
+lost_villager = NPC(10, 2)
 
 class Enemy(object):
     def __init__(self, name, hp, damage):
@@ -59,6 +47,7 @@ knight = Enemy("Knight", 20, 10)
 class Player(object):
     def __init__(self):
         self.inventory = [weaponRock]
+        self.inventoryDisplay = []
         self.hp = 100
         self.mp = 100
         self.damage = 10
@@ -728,6 +717,9 @@ class Game(Frame):
 
     # sets the status displayed on the right of the GUI
     def setGameStatus(self, status):
+        i = ""
+        for z in range (len(player.inventoryDisplay)):
+            i += player.inventoryDisplay[z]
         # clear the text widget
         Game.text.config(state=NORMAL)
         Game.text.delete("1.0", END)
@@ -738,7 +730,7 @@ class Game(Frame):
 
         else:
             Game.text.insert(END,
-                             str(Game.currentRoom) + "\nYou are carrying: " + str(player.inventory) + "\n\n" + status)
+                             str(Game.currentRoom) + "\nYou are carrying: " + i + "\n\n" + status)
             Game.text.config(state=DISABLED)
 
         Game.text.tag_add("center", "1.0", "end")
@@ -858,7 +850,7 @@ class Game(Frame):
                                     max_dmg = i.damage
                                     best_weapon = i
                         pAttack = i.damage
-                        response = "Attacked {} for {} damage, took {}. You have {} hp remaining".format(enemy, pAttack, Game.currentRoom.enemiesDamage[enemy], player.hp)
+                        response = "Attacked {} with {} for {} damage, took {}. You have {} hp remaining".format(enemy, i, pAttack, Game.currentRoom.enemiesDamage[enemy], player.hp)
                         # Check if the enemy was defeated
                         if(n > len(Game.currentRoom.enemies)):
                             # set the response and break
