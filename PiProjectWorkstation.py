@@ -715,15 +715,21 @@ class Game(Frame):
             Game.config(state=DISABLED)
 
         elif (Game.currentRoom.name == "Shop"):
+<<<<<<< HEAD
 
             Game.shopTitle = Label(Game.text, text="Welcome to the Shop", font=("Arial Bold", 25))
             Game.shopTitle.pack()
             Game.goldLabel = Label(Game.text, text="You have: {} Gold".format(player.gold), font=("Arial", 10))
             Game.goldLabel.pack()
+=======
+            Game.response = Label(Game.text, text="Welcome to the Shop", font=("Arial Bold", 25))
+            Game.response = Label(Game.text, text="You have: {} Gold".format(player.gold), font= ("Arial", 10))
+            Game.response.pack()
+>>>>>>> ec3359d3806b51e0d5c0551fe46b93099c072577
 
             Game.b1 = Button(Game.text, text="Great Sword", command=lambda: self.buy(1))
             Game.b1.pack()
-            Game.b2 = Button(Game.text, text="Potion", command=lambda: self.buy(2))
+            Game.b2 = Button(Game.text, text="Potion", command=lambda: self.buy(2),)
             Game.b2.pack()
             Game.b3 = Button(Game.text, text="Key", command=lambda: self.buy(3))
             Game.b3.pack()
@@ -736,6 +742,7 @@ class Game(Frame):
 
         else:
 
+<<<<<<< HEAD
             Game.text.insert(END, str(Game.currentRoom) + "\nYou are carrying: " + str(player.inventoryDisplay) + "\n\n" + "\n You have {} gold".format(player.gold) + "\n\n" + status)
             Game.text.config(state=DISABLED)
             Game.text.tag_add("center", "1.0", "end")
@@ -749,8 +756,25 @@ class Game(Frame):
                 Game.b4.pack_forget()
                 Game.b5.pack_forget()
                 Game.b6.pack_forget()
+=======
+            Game.text.insert(END,
+                             str(Game.currentRoom) + "\nYou are carrying: " + str(player.inventoryDisplay) + "\n\n" + status + "\n You have {} gold".format(player.gold))  
+            Game.text.config(state=DISABLED)
+            Game.text.tag_add("center", "1.0", "end")
+
+            Game.response.pack_forget()
+            Game.b1.pack_forget()
+            Game.b2.pack_forget()
+            Game.b3.pack_forget()
+            Game.b4.pack_forget()
+            Game.b5.pack_forget()
+            Game.b6.pack_forget()
+    
+
+>>>>>>> ec3359d3806b51e0d5c0551fe46b93099c072577
 
         Game.text.config(state=DISABLED)
+
 
     def setMenuStatus(self, status):
         # clear the text widget
@@ -940,12 +964,40 @@ class Game(Frame):
             self.setMenuStatus(response)
 
     def buy(self, args):
+<<<<<<< HEAD
 
+=======
+        Game.response.pack_forget()
+        Game.b1.pack_forget()
+        Game.b2.pack_forget()
+        Game.b3.pack_forget()
+        Game.b4.pack_forget()
+        Game.b5.pack_forget()
+        Game.b6.pack_forget()
+
+        Game.response = Label(Game.text, text="Welcome to the Shop", font=("Arial Bold", 25))
+        Game.response = Label(Game.text, text="You have: {} Gold".format(player.gold), font= ("Arial", 10))
+        Game.response.pack()
+        Game.b1 = Button(Game.text, text="Great Sword", command=lambda: self.buy(1))
+        Game.b1.pack()
+        Game.b2 = Button(Game.text, text="Potion", command=lambda: self.buy(2),)
+        Game.b2.pack()
+        Game.b3 = Button(Game.text, text="Key", command=lambda: self.buy(3))
+        Game.b3.pack()
+        Game.b4 = Button(Game.text, text="Dagger", command=lambda: self.buy(4))
+        Game.b4.pack()
+        Game.b5 = Button(Game.text, text="Bow", command=lambda: self.buy(5))
+        Game.b5.pack()
+        Game.b6 = Button(Game.text, text="Staff", command=lambda: self.buy(6))
+        Game.b6.pack()
+>>>>>>> ec3359d3806b51e0d5c0551fe46b93099c072577
         if args == 1:
             if player.gold >= weaponGreatSword.value:
                 player.gold -= weaponGreatSword.value
                 player.inventory.append(weaponGreatSword)
                 player.inventoryDisplay.append(weaponGreatSword.name)
+                
+                
                 print "You bought Great Sword"
             else:
                 print "You dont have enough gold"
