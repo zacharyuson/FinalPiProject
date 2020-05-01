@@ -66,7 +66,7 @@ class Player(object):
         self.hp = 100
         self.mp = 100
         self.damage = 10
-        self.gold = 200
+        self.gold = 0
         self.name = ""
         self.equipped = ""
 
@@ -96,7 +96,7 @@ class Room(object):
         self.enemies = {}
         self.enemiesDamage = {}
         self.enemiesGold = {}
-        self.NPCs = []
+        self.NPCs = {}
 
     # getters and setters for the instance variables
     @property
@@ -165,9 +165,12 @@ class Room(object):
         # remove the enemy from the list
         self._enemies.remove(enemy)
 
-    def addNPC(self, NPC):
+    def addNPC(self, name, hp, damage, gold, description):
         # append the NPC to the list
-        self._NPCs.append(NPC)
+        self._enemies[name] = hp
+        self.enemiesDamage[name] = damage
+        self.enemiesGold[name] = gold
+        self._NPCs[name] = description
 
     def delNPC(self, NPC):
         # remove the NPC from the list
@@ -236,9 +239,6 @@ class Room(object):
         for item in self.items.keys():
             s += item + " "
 
-        for person in self.NPCs:
-            s+= person + " "
-
         s += "\n"
 
         # next, the exits from the room
@@ -272,8 +272,8 @@ class Game(Frame):
         r1.addExit("east", r2)
         r1.addExit("west", r3)
         r1.addExit("south", r4)
+        r1.addNPC("villager", 7, 2, 10, "Welcome to our town!")
         r2.addExit("west", r1)
-        r2.addNPC("villager")
         r3.addExit("east", r1)
         r4.addExit("north", r1)
         main_menu.addExit("play", r1)
@@ -649,6 +649,7 @@ class Game(Frame):
 
         # set the current room to r1
         Game.currentRoom = r1
+        Game.previousRoom = r1
 
     # sets up the GUI
     def setupGameGUI(self):
@@ -734,14 +735,14 @@ class Game(Frame):
                              str(Game.currentRoom) + "\nYou are carrying: " + str(player.inventoryDisplay) + "\n\n" + status)
             Game.text.config(state=DISABLED)
             Game.text.tag_add("center", "1.0", "end")
-
-            Game.response.pack_forget()
-            Game.b1.pack_forget()
-            Game.b2.pack_forget()
-            Game.b3.pack_forget()
-            Game.b4.pack_forget()
-            Game.b5.pack_forget()
-            Game.b6.pack_forget()
+            if(Game.previousRoom.name == "Shop"):
+                Game.response.pack_forget()
+                Game.b1.pack_forget()
+                Game.b2.pack_forget()
+                Game.b3.pack_forget()
+                Game.b4.pack_forget()
+                Game.b5.pack_forget()
+                Game.b6.pack_forget()
 
         Game.text.config(state=DISABLED)
 
@@ -805,6 +806,7 @@ class Game(Frame):
                 # check the currentRoom's exits
                 if (noun in Game.currentRoom.exits):
                     # If it's valid, update the current room
+                    Game.previousRoom = Game.currentRoom
                     Game.currentRoom = Game.currentRoom.exits[noun]
                     # notify user that the room has changed
                     response = "Room changed."
@@ -817,7 +819,7 @@ class Game(Frame):
                 # check the currentRoom's items
                 if (noun in Game.currentRoom.items):
                     response = Game.currentRoom.items[noun]
-
+                    
             # process take
             elif (verb == "take"):
                 # default response
@@ -831,7 +833,7 @@ class Game(Frame):
                         # remove it from the room's grabbables
                         Game.currentRoom.delGrabbable(grabbable)
                         break
-
+                    
             # process attack
             elif (verb == "attack"):
                 # default response
@@ -853,19 +855,19 @@ class Game(Frame):
                                     best_weapon = i
                         pAttack = i.damage
                         response = "Attacked {} with {} for {} damage, took {}. You have {} hp remaining".format(enemy,
-                                                                                                            i, pAttack,
+                                                                                                            i.name, pAttack,
                                                                                                             Game.currentRoom.enemiesDamage[enemy],
                                                                                                                  player.hp)
                         # Check if the enemy was defeated
                         if (n > len(Game.currentRoom.enemies)):
-                            player.inventory.append(Game.currentRoom.enemiesGold[enemy])
+                            player.gold += Game.currentRoom.enemiesGold[enemy]
                             # set the response and break
                             response = "You defeated {}, gained {} gold".format(enemy, Game.currentRoom.enemiesGold[enemy])
                             break
 
                         elif (player.hp <= 0):
                             Game.currentRoom = None
-
+            
             elif (verb == "talk"):
                 # default response
                 response = "I don't see that NPC."
@@ -875,14 +877,13 @@ class Game(Frame):
                     if (noun == NPC):
                         # set the response
                         # calculate the attack sequence
-                        if noun == "villager":
-                            response = "Welcome to town. Please don't disrupt our work, we have enough stress to deal with."
-
-            # call the update for display
-            self.setGameStatus(response)
-            self.setRoomImage()
-            Game.gameplay_player_input.delete(0, END)
-
+                        response = Game.currentRoom.NPCs[NPC]
+            
+        # call the update for display
+        self.setGameStatus(response)
+        self.setRoomImage()
+        Game.gameplay_player_input.delete(0, END)
+        
     def processMenu(self, event):
         # set a default response
         response = "\n" * 8 + "-Play-\n-Help-\n-Quit-" + "\n" * 8 + "I don't understand. Try one word. Valid words are play, help, and quit."
