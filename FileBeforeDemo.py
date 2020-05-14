@@ -2,7 +2,7 @@ from Tkinter import *
 import sys
 import os
 import time
-import random
+from random import randrange
 
 
 class Weapon(object):
@@ -47,17 +47,28 @@ class NPC(object):
         self.hp = hp
         self.damage = damage
 
-villager = NPC("Villager", 20, 5)
-elf = NPC("Elf", 15, 15)
-lost_villager = NPC("Lost Villager", 10, 2)
-
-class Enemy(object):
-    def __init__(self, name, hp, damage):
+class Boss(object):
+    def __init__(self, name):
         self.name = name
-        self.hp = hp
-        self.damage = damage
 
-goblin = Enemy("Goblin", 10, 5)
+    @property
+    def name(self):
+        return self._name
+    @name.setter
+    def name(self, value):
+        self._name = value
+
+    def bossSkills(enemyBoss, eAttack):
+        rand = randrange(4)
+        if(enemyBoss.name == "boss"):
+            if(rand == 0):
+                player.hp -= eAttack
+            elif(rand == 1):
+                player.hp -= eAttack
+            elif(rand == 2):
+                player.hp -= eAttack
+            else:
+                player.hp -= eAttack
 
 # the player class
 class Player(object):
@@ -67,8 +78,9 @@ class Player(object):
         self.hp = 100
         self.mp = 100
         self.damage = 10
-        self.gold = 5
+        self.gold = 0
         self.name = ""
+        self.rating = 0
         self.equipped = ""
 
     @property
@@ -97,6 +109,7 @@ class Room(object):
         self.enemies = {}
         self.enemiesDamage = {}
         self.enemiesGold = {}
+        self.enemiesCheck = {}
         self.NPCs = {}
 
     # getters and setters for the instance variables
@@ -149,6 +162,30 @@ class Room(object):
         self._enemies = value
 
     @property
+    def enemiesDamage(self):
+        return self._enemiesDamage
+
+    @enemiesDamage.setter
+    def enemiesDamage(self, value):
+        self._enemiesDamage = value
+
+    @property
+    def enemiesGold(self):
+        return self._enemiesGold
+
+    @enemiesGold.setter
+    def enemiesGold(self, value):
+        self._enemiesGold = value
+    
+    @property
+    def enemiesCheck(self):
+        return self._enemiesCheck
+
+    @enemiesCheck.setter
+    def enemiesCheck(self, value):
+        self._enemiesCheck = value
+
+    @property
     def NPCs(self):
         return self._NPCs
 
@@ -156,11 +193,13 @@ class Room(object):
     def NPCs(self, value):
         self._NPCs = value
 
-    def addEnemy(self, name, hp, damage, gold):
+    def addEnemy(self, name, hp, damage, gold, boss = False):
         # append the enemy to the list
         self._enemies[name] = hp
-        self.enemiesDamage[name] = damage
-        self.enemiesGold[name] = gold
+        self._enemiesDamage[name] = damage
+        self._enemiesGold[name] = gold
+        self._NPCs[name] = "..."
+        self._enemiesCheck[name] = boss
 
     def delEnemy(self, enemy):
         # remove the enemy from the list
@@ -169,9 +208,10 @@ class Room(object):
     def addNPC(self, name, hp, damage, gold, description):
         # append the NPC to the list
         self._enemies[name] = hp
-        self.enemiesDamage[name] = damage
-        self.enemiesGold[name] = gold
+        self._enemiesDamage[name] = damage
+        self._enemiesGold[name] = gold
         self._NPCs[name] = description
+        self._enemiesCheck[name] = False
 
     def delNPC(self, NPC):
         # remove the NPC from the list
@@ -222,7 +262,10 @@ class Room(object):
             del self._enemies[enemy]
         # or they retailiate
         else:
-            player.hp -= eAttack
+            if(self._enemiesCheck[enemy] == False):
+                player.hp -= eAttack
+            else:
+                Boss.bossSkills(Boss(enemy), eAttack)
 
     # returns a string description of the room
     def __str__(self):
@@ -406,6 +449,7 @@ class Game(Frame):
         r40.addExit("north", r38)
         r40.addEnemy("goblin", 15, 5, 10)
         r41.addExit("south", r40)
+        r41.addEnemy("boss", 25, 15, 20, True)
 
         # supplement code to add features to the created rooms
 
@@ -736,7 +780,7 @@ class Game(Frame):
 
         else:
 
-            Game.text.insert(END, str(Game.currentRoom) + "\nYou are carrying: " + str(player.inventoryDisplay) + "\n\n" + "\n You have {} gold".format(player.gold) + "\n\n" + status)
+            Game.text.insert(END, str(Game.currentRoom) + "\nYou are carrying: " + str(player.inventoryDisplay) + "\n\n" + "\n You have {} gold; you have {} reputation".format(player.gold, player.rating) + "\n\n" + status)
             Game.text.config(state=DISABLED)
             Game.text.tag_add("center", "1.0", "end")
 
@@ -849,6 +893,7 @@ class Game(Frame):
                 # check currentRoom's creatures
                 for enemy in Game.currentRoom.enemies:
                     n = len(Game.currentRoom.enemies)
+                    x = Game.currentRoom.enemies[enemy]
                     if (noun == enemy):
                         # set the response
                         # calculate the attack sequence
@@ -869,12 +914,21 @@ class Game(Frame):
                         # Check if the enemy was defeated
                         if (n > len(Game.currentRoom.enemies)):
                             player.gold += Game.currentRoom.enemiesGold[enemy]
+                            if(Game.currentRoom.enemiesCheck[enemy] == False):
+                                player.rating += 10
+                            else:
+                                player.rating += 50
+                            if(enemy == "villager"):
+                                player.rating -= 25
                             # set the response and break
                             response = "You defeated {}, gained {} gold".format(enemy, Game.currentRoom.enemiesGold[enemy])
                             break
             
                         elif (player.hp <= 0):
                             Game.currentRoom = None
+                        else:
+                            if(x > Game.currentRoom.enemies[enemy] and enemy == "villager"):
+                                Game.currentRoom.NPCs[enemy] = "You fiend!"
             
             elif (verb == "talk"):
                 # default response
@@ -915,13 +969,15 @@ class Game(Frame):
             elif command == "help":
                 response = " "
                 response += '#' * 80 + "\n"
-                response += "Type a command such as 'go' then any compass direction, such as 'east',\n"
-                response += "to navigate the map of the cube puzzle.\n"
+                response += "To move around, type a command such as 'go' then any compass direction, \n"
+                response += "such as 'east' that is displayed, on the menu to navigate \n"
+                response += "the map of the cube puzzle.\n"
                 response += "Inputs such as 'look' or 'take' will\n"
-                response += "let you interact with items in the area.\n"
+                response += "let you interact with items in the area displayed with 'you see'.\n"
                 response += "Interacting with villagers or any other NPC\n"
                 response += "will require you to type 'talk' followed by\n"
                 response += "the name of the NPC.\n"
+                response += "to initiate combat, type 'attack' then the name of the creature dsiplayed\n"
                 response += "Please type in lowercase for an easier playthrough.\n\n"
                 response += "Thanks for playing and have fun!\n"
                 response += '#' * 80 + "\n"
@@ -999,7 +1055,7 @@ class Game(Frame):
 
         Game.shopTitle = Label(Game.text, text="Welcome to the Shop", font=("Arial Bold", 25))
         Game.shopTitle.pack()
-        Game.goldLabel = Label(Game.text, text="You have: {} Gold".format(player.gold), font=("Arial", 10))
+        Game.goldLabel = Label(Game.text, text="You have: {} Gold; you have {} reputation".format(player.gold, player.rating), font=("Arial", 10))
         Game.goldLabel.pack()
         Game.b1 = Button(Game.text, text="Great Sword", command=lambda: self.buy(1))
         Game.b1.pack()
