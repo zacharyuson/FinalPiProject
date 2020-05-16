@@ -48,7 +48,7 @@ class NPC(object):
         self.damage = damage
 
 class Boss(object):
-    def __init__(self, name):
+    def __init__(self, name, final = False):
         self.name = name
 
     @property
@@ -69,6 +69,7 @@ class Boss(object):
                 player.hp -= eAttack
             else:
                 player.hp -= eAttack
+
 
 # the player class
 class Player(object):
@@ -193,7 +194,7 @@ class Room(object):
     def NPCs(self, value):
         self._NPCs = value
 
-    def addEnemy(self, name, hp, damage, gold, boss = False):
+    def addEnemy(self, name, hp, damage, gold, boss = False, finalBoss = False):
         # append the enemy to the list
         self._enemies[name] = hp
         self._enemiesDamage[name] = damage
@@ -266,6 +267,14 @@ class Room(object):
                 player.hp -= eAttack
             else:
                 Boss.bossSkills(Boss(enemy), eAttack)
+
+    def checkRating(self, rating):
+        if(rating > 0):
+            print " > 0"
+        elif(rating < 0):
+            print "< 0"
+        else:
+            print "0"
 
     # returns a string description of the room
     def __str__(self):
@@ -449,7 +458,7 @@ class Game(Frame):
         r40.addExit("north", r38)
         r40.addEnemy("goblin", 15, 5, 10)
         r41.addExit("south", r40)
-        r41.addEnemy("boss", 25, 15, 20, True)
+        r41.addEnemy("giant boar", 25, 15, 20, True, False)
 
         # supplement code to add features to the created rooms
 
@@ -689,6 +698,7 @@ class Game(Frame):
 
         r99.addExit("down", r100)
         r100.addExit("up", r99)
+        r100.addEnemy("big bad", 50, 25, 1000, True, True)
 
         # supplement code to add features to the created rooms
 
@@ -859,6 +869,9 @@ class Game(Frame):
                     Game.previousRoom = Game.currentRoom
                     # If it's valid, update the current room
                     Game.currentRoom = Game.currentRoom.exits[noun]
+                    # check if it's the boss room
+                    if(Game.currentRoom.name == "Final Boss"):
+                        Game.currentRoom.checkRating(player.rating)
                     # notify user that the room has changed
                     response = "Room changed."
 
