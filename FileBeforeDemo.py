@@ -111,6 +111,7 @@ class Room(object):
         self.enemiesDamage = {}
         self.enemiesGold = {}
         self.enemiesCheck = {}
+        self.enemiesName = []
         self.NPCs = {}
 
     # getters and setters for the instance variables
@@ -187,6 +188,15 @@ class Room(object):
         self._enemiesCheck = value
 
     @property
+    def enemiesName(self):
+        return self._enemiesName
+
+    @enemiesName.setter
+    def enemiesName(self, value):
+        self._enemiesName = value
+        
+
+    @property
     def NPCs(self):
         return self._NPCs
 
@@ -201,6 +211,7 @@ class Room(object):
         self._enemiesGold[name] = gold
         self._NPCs[name] = "..."
         self._enemiesCheck[name] = boss
+        self._enemiesName.append(name)
 
     def delEnemy(self, enemy):
         # remove the enemy from the list
@@ -213,6 +224,7 @@ class Room(object):
         self._enemiesGold[name] = gold
         self._NPCs[name] = description
         self._enemiesCheck[name] = False
+        self._enemiesName.append(name)
 
     def delNPC(self, NPC):
         # remove the NPC from the list
@@ -867,14 +879,21 @@ class Game(Frame):
 
                 # check the currentRoom's exits
                 if (noun in Game.currentRoom.exits):
-                    Game.previousRoom = Game.currentRoom
-                    # If it's valid, update the current room
-                    Game.currentRoom = Game.currentRoom.exits[noun]
-                    # check if it's the boss room
-                    if(Game.currentRoom.name == "Final Boss"):
-                        Game.currentRoom.checkRating(player.rating)
-                    # notify user that the room has changed
-                    response = "Room changed."
+                    if(Game.currentRoom.enemiesName == [] or Game.currentRoom.enemiesName == ["villager"]):
+                       Game.previousRoom = Game.currentRoom
+                       # If it's valid, update the current room
+                       Game.currentRoom = Game.currentRoom.exits[noun]
+                       # check if it's the boss room
+                       if(Game.currentRoom.name == "Final Boss"):
+                           Game.currentRoom.checkRating(player.rating)
+                       # notify user that the room has changed
+                       response = "Room changed."
+                    else:
+                        if (Game.currentRoom.exits[noun] == Game.previousRoom):
+                            Game.previousRoom = Game.currentRoom
+                            Game.currentRoom = Game.currentRoom.exits[noun]
+                            
+                        
 
             # process look
             elif (verb == "look"):
@@ -936,6 +955,7 @@ class Game(Frame):
                                 player.rating -= 25
                             # set the response and break
                             response = "You defeated {}, gained {} gold".format(enemy, Game.currentRoom.enemiesGold[enemy])
+                            Game.currentRoom.enemiesName.remove(enemy)
                             break
             
                         elif (player.hp <= 0):
