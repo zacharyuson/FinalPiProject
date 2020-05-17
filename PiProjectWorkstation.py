@@ -87,6 +87,9 @@ class Player(object):
         self.inventory = [weaponRock]
         self.hp = 100
         self.mp = 100
+        self.xp = 0
+        self.lvl = 1
+        self.nextlvl = 25
         self.damage = 10
         self.gold = 50
         self.name = ""
@@ -100,6 +103,41 @@ class Player(object):
     @hp.setter
     def hp(self, value):
         self._hp = value
+    
+    @property
+    def xp(self):
+        return self._xp
+    @xp.setter
+    def xp(self, value):
+        self._xp = value
+    
+    @property
+    def lvl(self):
+        return self._lvl
+    @lvl.setter
+    def lvl(self, value):
+        self._lvl = value
+        
+    @property
+    def nextlvl(self):
+        return self._nextlvl
+    @xp.setter
+    def nextlvl(self, value):
+        self._nextlvl = value
+
+    def Level(self):
+        while self._xp >= self._nextlvl:
+            print "lvl: {}".format(self.lvl)
+            self.lvl += 1
+            print "Lvl: {}" .format(self.lvl) 
+            print "next lvl {}".format(self.nextlvl)
+            self._xp = self._xp - self._nextlvl
+    
+            print "next lvl {}".format(self.nextlvl)
+        return self.lvl , self.nextlvl, self.xp
+        
+
+
 
 
 player = Player()
@@ -122,6 +160,7 @@ class Room(object):
         self.enemiesDamage = {}
         self.enemiesGold = {}
         self.enemiesCheck = {}
+        self.enemiesXP = {}
         self.NPCs = {}
         self._NPCitems = {}
 
@@ -199,6 +238,14 @@ class Room(object):
         self._enemiesCheck = value
 
     @property
+    def enemiesXP(self):
+        return self._enemiesXP
+    
+    @enemiesXP.setter
+    def enemiesXP(self, value):
+        self._enemiesXP = value
+        
+    @property
     def NPCs(self):
         return self._NPCs
 
@@ -214,25 +261,27 @@ class Room(object):
     def NPCitems(self, value):
         self._NPCitems = value
 
-    def addEnemy(self, name, hp, damage, gold, boss=False):
+    def addEnemy(self, name, hp, damage, gold, Xp, boss=False):
         # append the enemy to the list
         self._enemies[name] = hp
         self._enemiesDamage[name] = damage
         self._enemiesGold[name] = gold
         self._NPCs[name] = "..."
         self._enemiesCheck[name] = boss
+        self._enemiesXP[name] = Xp
 
     def delEnemy(self, enemy):
         # remove the enemy from the list
         self._enemies.remove(enemy)
 
-    def addNPC(self, name, hp, damage, gold, description, item):
+    def addNPC(self, name, hp, damage, gold, description, item, Xp):
         # append the NPC to the list
         self._enemies[name] = hp
         self._enemiesDamage[name] = damage
         self._enemiesGold[name] = gold
         self._NPCs[name] = description
         self._NPCitems[name] = item
+        self._enemiesXP[name] = Xp
         self._enemiesCheck[name] = False
 
     def delNPC(self, NPC):
@@ -340,10 +389,10 @@ class Game(Frame):
         r1.addExit("south", r4)
         r2.addExit("west", r1)
         r3.addExit("east", r1)
-        r3.addNPC("villager", 7, 2, 10, "Welcome to our town!", "meat")
+        r3.addNPC("villager", 7, 2, 10, "Welcome to our town!", "meat", 10)
         r3.addGrabbable("meat")
         r4.addExit("north", r1)
-        r4.addNPC("villager", 7, 2, 10, "Welcome to our town!", "key")
+        r4.addNPC("villager", 7, 2, 10, "Welcome to our town!", "key", 10)
         r4.addGrabbable("key")
         main_menu.addExit("play", r1)
 
@@ -394,7 +443,7 @@ class Game(Frame):
         r6.addExit("south", r5)
         r6.addExit("east", r7)
         r6.addExit("west", r8)
-        r6.addEnemy("boar", 7, 7, 5)
+        r6.addEnemy("boar", 7, 7, 5, 150)
         r7.addExit("west", r6)
         r7.addExit("north", r9)
         r8.addExit("east", r6)
@@ -409,7 +458,7 @@ class Game(Frame):
         r12.addExit("south", r11)
         r12.addExit("east", r13)
         r12.addExit("west", r14)
-        r12.addEnemy("boar", 7, 7, 5)
+        r12.addEnemy("boar", 7, 7, 5, 15)
         r13.addExit("north", r15)
         r13.addExit("east", r17)
         r13.addExit("west", r12)
@@ -425,13 +474,13 @@ class Game(Frame):
         r18.addExit("west", r17)
         r18.addExit("east", r19)
         r19.addExit("west", r18)
-        r19.addEnemy("boar", 7, 7, 5)
+        r19.addEnemy("boar", 7, 7, 5, 10)
         r20.addExit("east", r14)
         r20.addExit("west", r21)
         r21.addExit("east", r20)
         r21.addExit("west", r22)
         r22.addExit("east", r21)
-        r22.addEnemy("boar", 7, 7, 5)
+        r22.addEnemy("boar", 7, 7, 5, 10)
         r23.addExit("east", r15)
         r23.addExit("west", r16)
         r23.addExit("down", r24)
@@ -440,12 +489,12 @@ class Game(Frame):
         r24.addExit("north", r25)
         r25.addExit("south", r24)
         r25.addExit("north", r26)
-        r25.addEnemy("goblin", 15, 5, 10)
+        r25.addEnemy("goblin", 15, 5, 10, 15)
         r26.addExit("south", r25)
         r26.addExit("north", r27)
         r27.addExit("south", r26)
         r27.addExit("north", r28)
-        r27.addEnemy("goblin", 15, 5, 10)
+        r27.addEnemy("goblin", 15, 5, 10, 15)
         r28.addExit("south", r27)
         r28.addExit("east", r29)
         r28.addExit("west", r30)
@@ -464,7 +513,7 @@ class Game(Frame):
         r34.addExit("north", r31)
         r34.addExit("south", r36)
         r35.addExit("south", r33)
-        r35.addEnemy("goblin", 15, 5, 10)
+        r35.addEnemy("goblin", 15, 5, 10, 25)
         r36.addExit("north", r34)
         r37.addExit("south", r32)
         r37.addExit("north", r39)
@@ -472,9 +521,9 @@ class Game(Frame):
         r38.addExit("south", r40)
         r39.addExit("south", r37)
         r40.addExit("north", r38)
-        r40.addEnemy("goblin", 15, 5, 10)
+        r40.addEnemy("goblin", 15, 5, 10, 25)
         r41.addExit("south", r40)
-        r41.addEnemy("boss", 25, 15, 20, True)
+        r41.addEnemy("boss", 25, 15, 20, True, 75)
 
         # supplement code to add features to the created rooms
 
@@ -515,7 +564,7 @@ class Game(Frame):
         r43.addExit("north", r44)
         r44.addExit("north", r45)
         r44.addExit("south", r43)
-        r44.addEnemy("knight", 50, 10, 20)
+        r44.addEnemy("knight", 50, 10, 20, 25)
         r45.addExit("east", r46)
         r45.addExit("west", r47)
         r45.addExit("south", r44)
@@ -526,11 +575,11 @@ class Game(Frame):
         r48.addExit("west", r46)
         r48.addExit("north", r50)
         r48.addExit("south", r51)
-        r48.addEnemy("knight", 50, 10, 20)
+        r48.addEnemy("knight", 50, 10, 20, 25)
         r49.addExit("east", r47)
         r49.addExit("north", r60)
         r49.addExit("south", r61)
-        r49.addEnemy("knight", 50, 10, 20)
+        r49.addEnemy("knight", 50, 10, 20, 30)
         r50.addExit("south", r48)
         r50.addExit("north", r52)
         r51.addExit("north", r48)
@@ -545,10 +594,10 @@ class Game(Frame):
         r55.addExit("east", r57)
         r56.addExit("west", r54)
         r56.addExit("east", r58)
-        r56.addEnemy("knight", 50, 10, 20)
+        r56.addEnemy("knight", 50, 10, 20, 30)
         r57.addExit("west", r55)
         r57.addExit("east", r59)
-        r57.addEnemy("knight", 50, 10, 20)
+        r57.addEnemy("knight", 50, 10, 20, 30)
         r59.addExit("west", r57)
         r60.addExit("north", r62)
         r60.addExit("south", r49)
@@ -564,10 +613,10 @@ class Game(Frame):
         r65.addExit("west", r67)
         r66.addExit("east", r64)
         r66.addExit("west", r69)
-        r66.addEnemy("knight", 50, 10, 20)
+        r66.addEnemy("knight", 50, 10, 20, 30)
         r67.addExit("east", r65)
         r67.addExit("west", r68)
-        r67.addEnemy("knight", 50, 10, 20)
+        r67.addEnemy("knight", 50, 10, 20, 25)
         r69.addExit("east", r66)
 
         # Fortress Level 2
@@ -627,22 +676,22 @@ class Game(Frame):
         r75.addExit("north", r94)
         r75.addExit("east", r71)
         r75.addExit("west", r92)
-        r75.addEnemy("knight", 50, 10, 20)
+        r75.addEnemy("knight", 50, 10, 20, 30)
         r76.addExit("south", r72)
         r76.addExit("north", r83)
         r76.addExit("east", r85)
         r76.addExit("west", r71)
-        r76.addEnemy("knight", 50, 10, 20)
+        r76.addEnemy("knight", 50, 10, 20, 30)
         r77.addExit("south", r88)
         r77.addExit("north", r72)
         r77.addExit("east", r86)
         r77.addExit("west", r73)
-        r77.addEnemy("knight", 50, 10, 20)
+        r77.addEnemy("knight", 50, 10, 20, 30)
         r78.addExit("south", r89)
         r78.addExit("north", r74)
         r78.addExit("east", r73)
         r78.addExit("west", r91)
-        r78.addEnemy("knight", 50, 10, 20)
+        r78.addEnemy("knight", 50, 10, 20, 35)
         r79.addExit("south", r71)
         r79.addExit("north", r95)
         r79.addExit("east", r83)
@@ -664,7 +713,7 @@ class Game(Frame):
         r83.addExit("west", r79)
         r84.addExit("south", r85)
         r84.addExit("west", r83)
-        r84.addEnemy("knight", 50, 10, 20)
+        r84.addEnemy("knight", 50, 10, 20, 35)
         r85.addExit("north", r84)
         r85.addExit("south", r80)
         r85.addExit("west", r76)
@@ -684,24 +733,24 @@ class Game(Frame):
         r91.addExit("north", r82)
         r91.addExit("south", r90)
         r91.addExit("east", r78)
-        r91.addEnemy("knight", 50, 10, 20)
+        r91.addEnemy("knight", 50, 10, 20, 30)
         r92.addExit("north", r93)
         r92.addExit("south", r82)
         r92.addExit("east", r75)
         r93.addExit("south", r92)
         r93.addExit("east", r94)
-        r93.addEnemy("knight", 50, 10, 20)
+        r93.addEnemy("knight", 50, 10, 20, 30)
         r94.addExit("south", r75)
         r94.addExit("east", r79)
         r94.addExit("west", r93)
         r95.addExit("south", r79)
-        r95.addEnemy("knight", 50, 10, 20)
+        r95.addEnemy("knight", 50, 10, 20, 35)
         r96.addExit("west", r80)
-        r96.addEnemy("knight", 50, 10, 20)
+        r96.addEnemy("knight", 50, 10, 20, 30)
         r97.addExit("north", r81)
-        r97.addEnemy("knight", 50, 10, 20)
+        r97.addEnemy("knight", 50, 10, 20, 35)
         r98.addExit("east", r82)
-        r98.addEnemy("knight", 50, 10, 20)
+        r98.addEnemy("knight", 50, 10, 20, 30)
 
         # Fortress Level 3
         r99 = Room("Floor 3 Stairway", "stairs.gif")
@@ -803,8 +852,8 @@ class Game(Frame):
         else:
 
             Game.text.insert(END, str(Game.currentRoom) + "\nYou are carrying: " + str(
-                player.inventoryDisplay) + "\n\n" + "\n You have {} gold; you have {} reputation".format(player.gold,
-                                                                                                         player.rating) + "\n\n" + status)
+                player.inventoryDisplay) + "\n\n" + "\n You have {} gold; you have {} reputation;\n You are level {}".format(player.gold,
+                                                                                                         player.rating, player.lvl) + "\n\n" + status)
             Game.text.config(state=DISABLED)
             Game.text.tag_add("center", "1.0", "end")
 
@@ -997,7 +1046,10 @@ class Game(Frame):
                                                                                                                  player.hp)
                         # Check if the enemy was defeated
                         if (n > len(Game.currentRoom.enemies)):
+                            #Adds gold and XP to player
                             player.gold += Game.currentRoom.enemiesGold[enemy]
+                            player.xp += Game.currentRoom.enemiesXP[enemy]
+                            player.Level()
                             if (Game.currentRoom.enemiesCheck[enemy] == False):
                                 player.rating += 10
                             else:
@@ -1005,8 +1057,8 @@ class Game(Frame):
                             if (enemy == "villager"):
                                 player.rating -= 25
                             # set the response and break
-                            response = "You defeated {}, gained {} gold".format(enemy,
-                                                                                Game.currentRoom.enemiesGold[enemy])
+                            response = "You defeated {}, gained {} gold and {} Xp".format(enemy,
+                                                                                Game.currentRoom.enemiesGold[enemy], Game.currentRoom.enemiesXP[enemy])
                             break
 
                         elif (player.hp <= 0):
