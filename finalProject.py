@@ -81,7 +81,7 @@ class Player(object):
         self.damage = 10
         self.gold = 0
         self.name = ""
-        self.rating = 0
+        self.rating = -10
         self.equipped = ""
 
     @property
@@ -111,6 +111,7 @@ class Room(object):
         self.enemiesDamage = {}
         self.enemiesGold = {}
         self.enemiesCheck = {}
+        self.enemiesName = []
         self.NPCs = {}
 
     # getters and setters for the instance variables
@@ -187,6 +188,15 @@ class Room(object):
         self._enemiesCheck = value
 
     @property
+    def enemiesName(self):
+        return self._enemiesName
+
+    @enemiesName.setter
+    def enemiesName(self, value):
+        self._enemiesName = value
+        
+
+    @property
     def NPCs(self):
         return self._NPCs
 
@@ -201,6 +211,7 @@ class Room(object):
         self._enemiesGold[name] = gold
         self._NPCs[name] = "..."
         self._enemiesCheck[name] = boss
+        self._enemiesName.append(name)
 
     def delEnemy(self, enemy):
         # remove the enemy from the list
@@ -213,6 +224,7 @@ class Room(object):
         self._enemiesGold[name] = gold
         self._NPCs[name] = description
         self._enemiesCheck[name] = False
+        self._enemiesName.append(name)
 
     def delNPC(self, NPC):
         # remove the NPC from the list
@@ -272,7 +284,7 @@ class Room(object):
         if(rating > 0):
             print " > 0"
         elif(rating < 0):
-            print "< 0"
+            g.end()
         else:
             print "0"
 
@@ -326,6 +338,7 @@ class Game(Frame):
         r1.addExit("west", r3)
         r1.addExit("south", r4)
         r1.addNPC("villager", 7, 2, 10, "Welcome to our town!")
+        r1.addItem("sign", "east is the shop, west is the slums, south is the residential area and north is the wild area!")
         r2.addExit("west", r1)
         r3.addExit("east", r1)
         r4.addExit("north", r1)
@@ -703,7 +716,7 @@ class Game(Frame):
         # supplement code to add features to the created rooms
 
         # set the current room to r1
-        Game.currentRoom = r1
+        Game.currentRoom = r99
         Game.previousRoom = r1
 
     # sets up the GUI
@@ -737,6 +750,22 @@ class Game(Frame):
         # setup the player input (bottom)
         Game.menu_player_input = Entry(self, bg="white")
         Game.menu_player_input.bind("<Return>", self.processMenu)
+        Game.menu_player_input.pack(side=BOTTOM, fill=X)
+        Game.menu_player_input.focus()
+
+        # setup text output on the right of the display
+        Game.menu_text_frame = Frame(self, width=WIDTH)
+        Game.text = Text(Game.menu_text_frame, bg="lightgrey", wrap=WORD, spacing1=2, state=DISABLED)
+        Game.text.pack(fill=Y, expand=1)
+        Game.menu_text_frame.pack()
+
+    def setupEndGUI(self):
+        # organize and pack the GUI
+        self.pack(fill=BOTH, expand=1)
+
+        # setup the player input (bottom)
+        Game.menu_player_input = Entry(self, bg="white")
+        Game.menu_player_input.bind("<Return>", self.processEnd)
         Game.menu_player_input.pack(side=BOTTOM, fill=X)
         Game.menu_player_input.focus()
 
@@ -788,6 +817,9 @@ class Game(Frame):
             Game.b6 = Button(Game.text, text="Staff", command=lambda: self.buy(6))
             Game.b6.pack()
 
+        elif(status == " "):
+            Game.text.insert(END, "something")
+
         else:
 
             Game.text.insert(END, str(Game.currentRoom) + "\nYou are carrying: " + str(player.inventoryDisplay) + "\n\n" + "\n You have {} gold; you have {} reputation".format(player.gold, player.rating) + "\n\n" + status)
@@ -824,6 +856,23 @@ class Game(Frame):
         Game.text.tag_add("center", "1.0", "end")
         Game.text.config(state=DISABLED)
 
+    def setEndStatus(self, status):
+        # clear the text widget
+        Game.text.config(state=NORMAL)
+        Game.text.delete("1.0", END)
+        Game.text.tag_configure("center", justify='center')  
+
+        if (status == ""):
+            Game.text.insert(END, "NAME IN DEVELOPMENT")
+            Game.text.insert(END, "\n" * 8 + "-Play-\n-Help-\n-Quit-")
+            Game.text.config(state=DISABLED)
+            Game.text.insert(END, "something")
+
+        Game.text.tag_add("center", "1.0", "end")
+        Game.text.config(state=DISABLED)
+          
+        
+
     # plays the game
     def play(self):
         # add the rooms to the game
@@ -837,6 +886,15 @@ class Game(Frame):
     def start(self):
         self.setupMenuGUI()
         self.setMenuStatus("")
+
+    def end(self):
+        Game.gameplay_player_input.destroy()
+        Game.gameplay_text_frame.destroy()
+        Game.image.destroy()
+        self.setGameStatus(" ")
+        
+        self.setupEndGUI()
+        self.setEndStatus(status = "")
 
     # processes the player's input
     def processGame(self, event):
@@ -866,14 +924,21 @@ class Game(Frame):
 
                 # check the currentRoom's exits
                 if (noun in Game.currentRoom.exits):
-                    Game.previousRoom = Game.currentRoom
-                    # If it's valid, update the current room
-                    Game.currentRoom = Game.currentRoom.exits[noun]
-                    # check if it's the boss room
-                    if(Game.currentRoom.name == "Final Boss"):
-                        Game.currentRoom.checkRating(player.rating)
-                    # notify user that the room has changed
-                    response = "Room changed."
+                    if(Game.currentRoom.enemiesName == [] or Game.currentRoom.enemiesName == ["villager"]):
+                       Game.previousRoom = Game.currentRoom
+                       # If it's valid, update the current room
+                       Game.currentRoom = Game.currentRoom.exits[noun]
+                       # check if it's the boss room
+                       if(Game.currentRoom.name == "Final Boss"):
+                           Game.currentRoom.checkRating(player.rating)
+                       # notify user that the room has changed
+                       response = "Room changed."
+                    else:
+                        if (Game.currentRoom.exits[noun] == Game.previousRoom):
+                            Game.previousRoom = Game.currentRoom
+                            Game.currentRoom = Game.currentRoom.exits[noun]
+                            
+                        
 
             # process look
             elif (verb == "look"):
@@ -935,6 +1000,7 @@ class Game(Frame):
                                 player.rating -= 25
                             # set the response and break
                             response = "You defeated {}, gained {} gold".format(enemy, Game.currentRoom.enemiesGold[enemy])
+                            Game.currentRoom.enemiesName.remove(enemy)
                             break
             
                         elif (player.hp <= 0):
@@ -1006,6 +1072,12 @@ class Game(Frame):
             # call the update for display
             Game.menu_player_input.delete(0, END)
             self.setMenuStatus(response)
+
+    def processEnd(self, event):
+        # get the command input from the GUI
+        action = Game.menu_player_input.get()
+        action = action.lower()
+        response = "something"
 
     def buy(self, args):
 

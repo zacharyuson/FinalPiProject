@@ -59,16 +59,32 @@ class Boss(object):
         self._name = value
 
     def bossSkills(enemyBoss, eAttack):
-        rand = randrange(4)
-        if(enemyBoss.name == "boss"):
+        rand = randrange(5)
+        if(enemyBoss.name == "baddie"):
             if(rand == 0):
-                player.hp -= eAttack
+                player.hp -= 0
+                print "0"
             elif(rand == 1):
-                player.hp -= eAttack
+                enemies["baddie"] += pAttack
             elif(rand == 2):
+                print "1"
+                player.hp -= 2 * eAttack
+                print "2"
+            elif(rand == 3):
                 player.hp -= eAttack
+                print "3"
             else:
                 player.hp -= eAttack
+                print "4"
+
+        elif(enemyBoss.name == "bear"):
+            if(rand == 0 or rand == 1 or rand == 2):
+                player.hp -= eAttack
+                print "0"
+            else:
+                player.hp -= 2 * eAttack
+                print "1"
+            
 
 
 # the player class
@@ -193,8 +209,7 @@ class Room(object):
 
     @enemiesName.setter
     def enemiesName(self, value):
-        self._enemiesName = value
-        
+        self._enemiesName = value        
 
     @property
     def NPCs(self):
@@ -210,7 +225,7 @@ class Room(object):
         self._enemiesDamage[name] = damage
         self._enemiesGold[name] = gold
         self._NPCs[name] = "..."
-        self._enemiesCheck[name] = boss
+        self._enemiesCheck[name] = boss 
         self._enemiesName.append(name)
 
     def delEnemy(self, enemy):
@@ -281,12 +296,9 @@ class Room(object):
                 Boss.bossSkills(Boss(enemy), eAttack)
 
     def checkRating(self, rating):
-        if(rating > 0):
+        if(rating >= 0):
             print " > 0"
-        elif(rating < 0):
-            print "< 0"
-        else:
-            print "0"
+            return 0
 
     # returns a string description of the room
     def __str__(self):
@@ -322,6 +334,9 @@ class Game(Frame):
     def __init__(self, parent):
         # call the constructor in the superclass
         Frame.__init__(self, parent)
+
+    def win(self):
+        self.setGameStatus("victory")
 
     # creates the rooms
     def createRooms(self):
@@ -470,8 +485,8 @@ class Game(Frame):
         r39.addExit("south", r37)
         r40.addExit("north", r38)
         r40.addEnemy("goblin", 15, 5, 10)
-        r41.addExit("south", r40)
-        r41.addEnemy("giant boar", 25, 15, 20, True, False)
+        r41.addExit("south", r23)
+        r41.addEnemy("bear", 25, 10, 20, True, False)
 
         # supplement code to add features to the created rooms
 
@@ -711,12 +726,12 @@ class Game(Frame):
 
         r99.addExit("down", r100)
         r100.addExit("up", r99)
-        r100.addEnemy("big bad", 50, 25, 1000, True, True)
+        r100.addEnemy("baddie", 1, 1, 1000, True, True)
 
         # supplement code to add features to the created rooms
 
         # set the current room to r1
-        Game.currentRoom = r1
+        Game.currentRoom = r99
         Game.previousRoom = r1
 
     # sets up the GUI
@@ -801,6 +816,28 @@ class Game(Frame):
             Game.b6 = Button(Game.text, text="Staff", command=lambda: self.buy(6))
             Game.b6.pack()
 
+        elif(Game.currentRoom.name == "Final Boss" and player.rating < 0):
+            Game.text.insert(END, "As you enter the room, you see the final boss \n"
+                             "standing before you. You think of all the \n"
+                             "villagers you've murdered as he approaches you, \n"
+                             "yet as he comes he seems, pleased.'My spies have taken note of your progress,' he says. 'With \n"
+                             "someone of your skill and character we could rule this world together!' He outsretches his hand in frienship and you gladly accept. \n"
+                             "With your powers combined, you easily dominate \n"
+                             "the village and all others until nothing but \n"
+                             "destruction is left in your wake. You eventually turn on each other in greed, but by then the \n"
+                             "damage is done, the world as you knew it has \n"
+                             "vanished.")
+            
+
+            Game.text.config(state = DISABLED)
+            Gane.text.tag_add("center", "1.0", "end")
+
+        elif(status == " "):
+            Game.text.insert(END, "something")
+
+        elif(status == "victory"):
+            print "0"
+
         else:
 
             Game.text.insert(END, str(Game.currentRoom) + "\nYou are carrying: " + str(player.inventoryDisplay) + "\n\n" + "\n You have {} gold; you have {} reputation".format(player.gold, player.rating) + "\n\n" + status)
@@ -836,6 +873,8 @@ class Game(Frame):
 
         Game.text.tag_add("center", "1.0", "end")
         Game.text.config(state=DISABLED)
+          
+        
 
     # plays the game
     def play(self):
@@ -939,10 +978,9 @@ class Game(Frame):
                                     max_dmg = i.damage
                                     best_weapon = i
                         pAttack = i.damage
-                        response = "Attacked {} with {} for {} damage, took {}. You have {} hp remaining".format(enemy,
+                        response = "Attacked {} with {} for {} damage. You have {} hp remaining".format(enemy,
                                                                                                                  i.name,
                                                                                                                  pAttack,
-                                                                                                                 Game.currentRoom.enemiesDamage[enemy],
                                                                                                                  player.hp)
                         # Check if the enemy was defeated
                         if (n > len(Game.currentRoom.enemies)):
@@ -956,6 +994,8 @@ class Game(Frame):
                             # set the response and break
                             response = "You defeated {}, gained {} gold".format(enemy, Game.currentRoom.enemiesGold[enemy])
                             Game.currentRoom.enemiesName.remove(enemy)
+                            if(Game.currentRoom.name == "Final Boss"):
+                                Game.win()
                             break
             
                         elif (player.hp <= 0):
