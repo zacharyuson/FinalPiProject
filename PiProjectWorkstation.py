@@ -2,7 +2,7 @@ from Tkinter import *
 import sys
 import os
 import time
-import random
+from random import randrange
 
 
 class Weapon(object):
@@ -10,30 +10,36 @@ class Weapon(object):
         self.name = name
         self.value = value
 
+
 class Rock(Weapon):
     def __init__(self, name, value, damage):
         self.damage = damage
         super(Rock, self).__init__(name, value)
+
 
 class Dagger(Weapon):
     def __init__(self, name, value, damage):
         self.damage = damage
         super(Dagger, self).__init__(name, value)
 
+
 class GreatSword(Weapon):
     def __init__(self, name, value, damage):
         self.damage = damage
         super(GreatSword, self).__init__(name, value)
+
 
 class Bow(Weapon):
     def __init__(self, name, value, damage):
         self.damage = damage
         super(Bow, self).__init__(name, value)
 
+
 class Staff(Weapon):
     def __init__(self, name, value, damage):
         self.damage = damage
         super(Staff, self).__init__(name, value)
+
 
 weaponRock = Rock("Rock", 1, 5)
 weaponDagger = Dagger("Dagger", 5, 10)
@@ -41,23 +47,38 @@ weaponGreatSword = GreatSword("Great Sword", 100, 50)
 weaponBow = Bow("Bow", 10, 15)
 weaponStaff = Staff("Staff", 50, 30)
 
+
 class NPC(object):
     def __init__(self, name, hp, damage):
         self.name = name
         self.hp = hp
         self.damage = damage
 
-villager = NPC("Villager", 20, 5)
-elf = NPC("Elf", 15, 15)
-lost_villager = NPC("Lost Villager", 10, 2)
 
-class Enemy(object):
-    def __init__(self, name, hp, damage):
+class Boss(object):
+    def __init__(self, name):
         self.name = name
-        self.hp = hp
-        self.damage = damage
 
-goblin = Enemy("Goblin", 10, 5)
+    @property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, value):
+        self._name = value
+
+    def bossSkills(enemyBoss, eAttack):
+        rand = randrange(4)
+        if (enemyBoss.name == "boss"):
+            if (rand == 0):
+                player.hp -= eAttack
+            elif (rand == 1):
+                player.hp -= eAttack
+            elif (rand == 2):
+                player.hp -= eAttack
+            else:
+                player.hp -= eAttack
+
 
 # the player class
 class Player(object):
@@ -67,9 +88,9 @@ class Player(object):
         self.hp = 100
         self.mp = 100
         self.damage = 10
-        self.rating = 50
-        self.gold = 200
+        self.gold = 50
         self.name = ""
+        self.rating = 0
         self.equipped = ""
 
     @property
@@ -80,7 +101,9 @@ class Player(object):
     def hp(self, value):
         self._hp = value
 
+
 player = Player()
+
 
 # the room class
 # note that this class is fully implemented with dictionaries as illustrated in the lesson "More on Data Structures"
@@ -97,7 +120,10 @@ class Room(object):
         self.grabbables = []
         self.enemies = {}
         self.enemiesDamage = {}
-        self.NPCs = []
+        self.enemiesGold = {}
+        self.enemiesCheck = {}
+        self.NPCs = {}
+        self._NPCitems = {}
 
     # getters and setters for the instance variables
     @property
@@ -149,6 +175,30 @@ class Room(object):
         self._enemies = value
 
     @property
+    def enemiesDamage(self):
+        return self._enemiesDamage
+
+    @enemiesDamage.setter
+    def enemiesDamage(self, value):
+        self._enemiesDamage = value
+
+    @property
+    def enemiesGold(self):
+        return self._enemiesGold
+
+    @enemiesGold.setter
+    def enemiesGold(self, value):
+        self._enemiesGold = value
+
+    @property
+    def enemiesCheck(self):
+        return self._enemiesCheck
+
+    @enemiesCheck.setter
+    def enemiesCheck(self, value):
+        self._enemiesCheck = value
+
+    @property
     def NPCs(self):
         return self._NPCs
 
@@ -156,18 +206,34 @@ class Room(object):
     def NPCs(self, value):
         self._NPCs = value
 
-    def addEnemy(self, name, hp, damage):
+    @property
+    def NPCitems(self):
+        return self._NPCitems
+
+    @NPCitems.setter
+    def NPCitems(self, value):
+        self._NPCitems = value
+
+    def addEnemy(self, name, hp, damage, gold, boss=False):
         # append the enemy to the list
         self._enemies[name] = hp
-        self.enemiesDamage[name] = damage
+        self._enemiesDamage[name] = damage
+        self._enemiesGold[name] = gold
+        self._NPCs[name] = "..."
+        self._enemiesCheck[name] = boss
 
     def delEnemy(self, enemy):
         # remove the enemy from the list
         self._enemies.remove(enemy)
 
-    def addNPC(self, NPC):
+    def addNPC(self, name, hp, damage, gold, description, item):
         # append the NPC to the list
-        self._NPCs.append(NPC)
+        self._enemies[name] = hp
+        self._enemiesDamage[name] = damage
+        self._enemiesGold[name] = gold
+        self._NPCs[name] = description
+        self._NPCitems[name] = item
+        self._enemiesCheck[name] = False
 
     def delNPC(self, NPC):
         # remove the NPC from the list
@@ -218,7 +284,10 @@ class Room(object):
             del self._enemies[enemy]
         # or they retailiate
         else:
-            player.hp -= eAttack
+            if (self._enemiesCheck[enemy] == False):
+                player.hp -= eAttack
+            else:
+                Boss.bossSkills(Boss(enemy), eAttack)
 
     # returns a string description of the room
     def __str__(self):
@@ -235,9 +304,6 @@ class Room(object):
         s += "You see: "
         for item in self.items.keys():
             s += item + " "
-
-        for person in self.NPCs:
-            s+= person + " "
 
         s += "\n"
 
@@ -272,11 +338,13 @@ class Game(Frame):
         r1.addExit("east", r2)
         r1.addExit("west", r3)
         r1.addExit("south", r4)
-        r1.addEnemy("goblin", 100, 100)
         r2.addExit("west", r1)
-        r2.addNPC("villager")
         r3.addExit("east", r1)
+        r3.addNPC("villager", 7, 2, 10, "Welcome to our town!", "meat")
+        r3.addGrabbable("meat")
         r4.addExit("north", r1)
+        r4.addNPC("villager", 7, 2, 10, "Welcome to our town!", "key")
+        r4.addGrabbable("key")
         main_menu.addExit("play", r1)
 
         # supplement code to add features to the created rooms
@@ -326,7 +394,7 @@ class Game(Frame):
         r6.addExit("south", r5)
         r6.addExit("east", r7)
         r6.addExit("west", r8)
-        r6.addEnemy("boar", 7, 7)
+        r6.addEnemy("boar", 7, 7, 5)
         r7.addExit("west", r6)
         r7.addExit("north", r9)
         r8.addExit("east", r6)
@@ -341,6 +409,7 @@ class Game(Frame):
         r12.addExit("south", r11)
         r12.addExit("east", r13)
         r12.addExit("west", r14)
+        r12.addEnemy("boar", 7, 7, 5)
         r13.addExit("north", r15)
         r13.addExit("east", r17)
         r13.addExit("west", r12)
@@ -356,11 +425,13 @@ class Game(Frame):
         r18.addExit("west", r17)
         r18.addExit("east", r19)
         r19.addExit("west", r18)
+        r19.addEnemy("boar", 7, 7, 5)
         r20.addExit("east", r14)
         r20.addExit("west", r21)
         r21.addExit("east", r20)
         r21.addExit("west", r22)
         r22.addExit("east", r21)
+        r22.addEnemy("boar", 7, 7, 5)
         r23.addExit("east", r15)
         r23.addExit("west", r16)
         r23.addExit("down", r24)
@@ -369,10 +440,12 @@ class Game(Frame):
         r24.addExit("north", r25)
         r25.addExit("south", r24)
         r25.addExit("north", r26)
+        r25.addEnemy("goblin", 15, 5, 10)
         r26.addExit("south", r25)
         r26.addExit("north", r27)
         r27.addExit("south", r26)
         r27.addExit("north", r28)
+        r27.addEnemy("goblin", 15, 5, 10)
         r28.addExit("south", r27)
         r28.addExit("east", r29)
         r28.addExit("west", r30)
@@ -391,6 +464,7 @@ class Game(Frame):
         r34.addExit("north", r31)
         r34.addExit("south", r36)
         r35.addExit("south", r33)
+        r35.addEnemy("goblin", 15, 5, 10)
         r36.addExit("north", r34)
         r37.addExit("south", r32)
         r37.addExit("north", r39)
@@ -398,7 +472,9 @@ class Game(Frame):
         r38.addExit("south", r40)
         r39.addExit("south", r37)
         r40.addExit("north", r38)
+        r40.addEnemy("goblin", 15, 5, 10)
         r41.addExit("south", r40)
+        r41.addEnemy("boss", 25, 15, 20, True)
 
         # supplement code to add features to the created rooms
 
@@ -439,6 +515,7 @@ class Game(Frame):
         r43.addExit("north", r44)
         r44.addExit("north", r45)
         r44.addExit("south", r43)
+        r44.addEnemy("knight", 50, 10, 20)
         r45.addExit("east", r46)
         r45.addExit("west", r47)
         r45.addExit("south", r44)
@@ -449,9 +526,11 @@ class Game(Frame):
         r48.addExit("west", r46)
         r48.addExit("north", r50)
         r48.addExit("south", r51)
+        r48.addEnemy("knight", 50, 10, 20)
         r49.addExit("east", r47)
         r49.addExit("north", r60)
         r49.addExit("south", r61)
+        r49.addEnemy("knight", 50, 10, 20)
         r50.addExit("south", r48)
         r50.addExit("north", r52)
         r51.addExit("north", r48)
@@ -466,8 +545,10 @@ class Game(Frame):
         r55.addExit("east", r57)
         r56.addExit("west", r54)
         r56.addExit("east", r58)
+        r56.addEnemy("knight", 50, 10, 20)
         r57.addExit("west", r55)
         r57.addExit("east", r59)
+        r57.addEnemy("knight", 50, 10, 20)
         r59.addExit("west", r57)
         r60.addExit("north", r62)
         r60.addExit("south", r49)
@@ -483,8 +564,10 @@ class Game(Frame):
         r65.addExit("west", r67)
         r66.addExit("east", r64)
         r66.addExit("west", r69)
+        r66.addEnemy("knight", 50, 10, 20)
         r67.addExit("east", r65)
         r67.addExit("west", r68)
+        r67.addEnemy("knight", 50, 10, 20)
         r69.addExit("east", r66)
 
         # Fortress Level 2
@@ -544,18 +627,22 @@ class Game(Frame):
         r75.addExit("north", r94)
         r75.addExit("east", r71)
         r75.addExit("west", r92)
+        r75.addEnemy("knight", 50, 10, 20)
         r76.addExit("south", r72)
         r76.addExit("north", r83)
         r76.addExit("east", r85)
         r76.addExit("west", r71)
+        r76.addEnemy("knight", 50, 10, 20)
         r77.addExit("south", r88)
         r77.addExit("north", r72)
         r77.addExit("east", r86)
         r77.addExit("west", r73)
+        r77.addEnemy("knight", 50, 10, 20)
         r78.addExit("south", r89)
         r78.addExit("north", r74)
         r78.addExit("east", r73)
         r78.addExit("west", r91)
+        r78.addEnemy("knight", 50, 10, 20)
         r79.addExit("south", r71)
         r79.addExit("north", r95)
         r79.addExit("east", r83)
@@ -577,6 +664,7 @@ class Game(Frame):
         r83.addExit("west", r79)
         r84.addExit("south", r85)
         r84.addExit("west", r83)
+        r84.addEnemy("knight", 50, 10, 20)
         r85.addExit("north", r84)
         r85.addExit("south", r80)
         r85.addExit("west", r76)
@@ -596,18 +684,24 @@ class Game(Frame):
         r91.addExit("north", r82)
         r91.addExit("south", r90)
         r91.addExit("east", r78)
+        r91.addEnemy("knight", 50, 10, 20)
         r92.addExit("north", r93)
         r92.addExit("south", r82)
         r92.addExit("east", r75)
         r93.addExit("south", r92)
         r93.addExit("east", r94)
+        r93.addEnemy("knight", 50, 10, 20)
         r94.addExit("south", r75)
         r94.addExit("east", r79)
         r94.addExit("west", r93)
         r95.addExit("south", r79)
+        r95.addEnemy("knight", 50, 10, 20)
         r96.addExit("west", r80)
+        r96.addEnemy("knight", 50, 10, 20)
         r97.addExit("north", r81)
+        r97.addEnemy("knight", 50, 10, 20)
         r98.addExit("east", r82)
+        r98.addEnemy("knight", 50, 10, 20)
 
         # Fortress Level 3
         r99 = Room("Floor 3 Stairway", "stairs.gif")
@@ -625,6 +719,7 @@ class Game(Frame):
 
         # set the current room to r1
         Game.currentRoom = r1
+        Game.previousRoom = r1
 
     # sets up the GUI
     def setupGameGUI(self):
@@ -686,42 +781,44 @@ class Game(Frame):
 
         if (Game.currentRoom == None):
             Game.text.insert(END, "You are dead. You may quit.")
+            Game.config(state=DISABLED)
 
         elif (Game.currentRoom.name == "Shop"):
-            Game.response = Label(Game.text, text="Welcome to the Shop", font=("Arial Bold", 25))
-            Game.response = Label(Game.text, text="You have: {} Gold".format(player.gold), font= ("Arial", 10))
-            Game.response.pack()
-            Game.b1 = Button(Game.text, text="Great Sword", command=lambda: self.buy(1))
+
+            Game.shopTitle = Label(Game.text, text="Welcome to the Shop", font=("Arial Bold", 25))
+            Game.shopTitle.pack()
+            Game.goldLabel = Label(Game.text,
+                                   text="You have: {} Gold".format(player.gold),
+                                   font=("Arial", 10))
+            Game.goldLabel.pack()
+            Game.b1 = Button(Game.text, text="Great Sword: 100", command=lambda: self.buy(1))
             Game.b1.pack()
-            Game.b2 = Button(Game.text, text="Potion", command=lambda: self.buy(2),)
+            Game.b2 = Button(Game.text, text="Dagger: 5", command=lambda: self.buy(4))
             Game.b2.pack()
-            Game.b3 = Button(Game.text, text="Key", command=lambda: self.buy(3))
+            Game.b3 = Button(Game.text, text="Bow: 10", command=lambda: self.buy(5))
             Game.b3.pack()
-            Game.b4 = Button(Game.text, text="Dagger", command=lambda: self.buy(4))
+            Game.b4 = Button(Game.text, text="Staff: 50", command=lambda: self.buy(6))
             Game.b4.pack()
-            Game.b5 = Button(Game.text, text="Bow", command=lambda: self.buy(5))
-            Game.b5.pack()
-            Game.b6 = Button(Game.text, text="Staff", command=lambda: self.buy(6))
-            Game.b6.pack()
 
         else:
 
-            Game.text.insert(END,
-                             str(Game.currentRoom) + "\nYou are carrying: " + str(player.inventoryDisplay) + "\n\n" + status + "\n You have {} gold".format(player.gold))  
+            Game.text.insert(END, str(Game.currentRoom) + "\nYou are carrying: " + str(
+                player.inventoryDisplay) + "\n\n" + "\n You have {} gold; you have {} reputation".format(player.gold,
+                                                                                                         player.rating) + "\n\n" + status)
             Game.text.config(state=DISABLED)
             Game.text.tag_add("center", "1.0", "end")
-            Game.response.pack_forget()
-            Game.b1.pack_forget()
-            Game.b2.pack_forget()
-            Game.b3.pack_forget()
-            Game.b4.pack_forget()
-            Game.b5.pack_forget()
-            Game.b6.pack_forget()
-    
 
+            if (Game.previousRoom.name == "Shop"):
+                Game.shopTitle.pack_forget()
+                Game.goldLabel.pack_forget()
+                Game.b1.pack_forget()
+                Game.b2.pack_forget()
+                Game.b3.pack_forget()
+                Game.b4.pack_forget()
+                Game.b5.pack_forget()
+                Game.b6.pack_forget()
 
         Game.text.config(state=DISABLED)
-
 
     def setMenuStatus(self, status):
         # clear the text widget
@@ -730,11 +827,25 @@ class Game(Frame):
         Game.text.tag_configure("center", justify='center')
 
         if (status == ""):
+            Game.text.insert(END, "NAME IN DEVELOPMENT")
             Game.text.insert(END, "\n" * 8 + "-Play-\n-Help-\n-Quit-")
             Game.text.config(state=DISABLED)
 
         else:
             Game.text.insert(END, status)
+            Game.text.config(state=DISABLED)
+
+        Game.text.tag_add("center", "1.0", "end")
+        Game.text.config(state=DISABLED)
+
+    def setEndStatus(self, status):
+        # clear the text widget
+        Game.text.config(state=NORMAL)
+        Game.text.delete("1.0", END)
+        Game.text.tag_configure("center", justify='center')
+
+        if (status == ""):
+            Game.text.insert(END, "yo")
             Game.text.config(state=DISABLED)
 
         Game.text.tag_add("center", "1.0", "end")
@@ -782,10 +893,57 @@ class Game(Frame):
 
                 # check the currentRoom's exits
                 if (noun in Game.currentRoom.exits):
-                    # If it's valid, update the current room
-                    Game.currentRoom = Game.currentRoom.exits[noun]
-                    # notify user that the room has changed
-                    response = "Room changed."
+                    Game.previousRoom = Game.currentRoom
+
+                    if (noun == "east" and Game.currentRoom.name == "East Path 3"):
+                        # checks to make sure key is in inventory
+                        if ("meat" in player.inventory):
+                            response = None
+                            Game.currentRoom = Game.currentRoom.exits[noun]
+                        # if they do not have key then they cannot enter the room
+                        else:
+                            response = "The guard won't let you pass."
+
+                    elif (noun == "west" and Game.currentRoom.name == "West Path 3"):
+                        if ("key" in player.inventory):
+                            response = "You're in."
+                            Game.currentRoom = Game.currentRoom.exits[noun]
+                        # if they do not have key then they cannot enter the room
+                        else:
+                            response = "Seems to need a key to get in."
+
+                    elif (noun == "east" and Game.currentRoom.name == "Fortress Encounter NNE"):
+                        if (player.gold >= 50):
+                            player.gold -= 50
+                            response = "The guards let you pass."
+                            Game.currentRoom = Game.currentRoom.exits[noun]
+                        # if they do not have key then they cannot enter the room
+                        else:
+                            response = "The guards tell you that you cannot enter."
+
+                    elif (noun == "west" and Game.currentRoom.name == "Fortress Encounter SSW"):
+                        if (player.gold >= 50):
+                            player.gold -= 50
+                            response = "The guards let you pass."
+                            Game.currentRoom = Game.currentRoom.exits[noun]
+                        # if they do not have key then they cannot enter the room
+                        else:
+                            response = "The guards tell you that you cannot enter."
+
+                    elif (noun == "west" and Game.currentRoom.name == "Fortress Encounter NNW"):
+                        if (player.gold >= 50):
+                            player.gold -= 50
+                            response = "The guards let you pass."
+                            Game.currentRoom = Game.currentRoom.exits[noun]
+                        # if they do not have key then they cannot enter the room
+                        else:
+                            response = "The guards tell you that you cannot enter."
+
+                    else:
+                        # If it's valid, update the current room
+                        Game.currentRoom = Game.currentRoom.exits[noun]
+                        # notify user that the room has changed
+                        response = "Room changed."
 
             # process look
             elif (verb == "look"):
@@ -818,6 +976,7 @@ class Game(Frame):
                 # check currentRoom's creatures
                 for enemy in Game.currentRoom.enemies:
                     n = len(Game.currentRoom.enemies)
+                    x = Game.currentRoom.enemies[enemy]
                     if (noun == enemy):
                         # set the response
                         # calculate the attack sequence
@@ -831,69 +990,54 @@ class Game(Frame):
                                     best_weapon = i
                         pAttack = i.damage
                         response = "Attacked {} with {} for {} damage, took {}. You have {} hp remaining".format(enemy,
-                                                                                                            i, pAttack,
-                                                                                                            Game.currentRoom.enemiesDamage[enemy],
+                                                                                                                 i.name,
+                                                                                                                 pAttack,
+                                                                                                                 Game.currentRoom.enemiesDamage[
+                                                                                                                     enemy],
                                                                                                                  player.hp)
                         # Check if the enemy was defeated
                         if (n > len(Game.currentRoom.enemies)):
-                            # add to player good/bad rating for defeating enemy
-                            player.rating += 10
+                            player.gold += Game.currentRoom.enemiesGold[enemy]
+                            if (Game.currentRoom.enemiesCheck[enemy] == False):
+                                player.rating += 10
+                            else:
+                                player.rating += 50
+                            if (enemy == "villager"):
+                                player.rating -= 25
                             # set the response and break
-                            response = "You defeated {}".format(enemy)
+                            response = "You defeated {}, gained {} gold".format(enemy,
+                                                                                Game.currentRoom.enemiesGold[enemy])
                             break
 
                         elif (player.hp <= 0):
                             Game.currentRoom = None
-                #Check for npcs
-                for NPC in Game.currentRoom.enemies:
-                    n = len(Game.currentRoom.enemies)
-                    if (noun == NPC):
-                        # set the response
-                        # calculate the attack sequence
-                        Game.currentRoom.attack(NPC, 1, Game.currentRoom.enemiesDamage[NPC])
-                        best_weapon = None
-                        max_dmg = 0
-                        for i in player.inventory:
-                            if isinstance(i, Weapon):
-                                if i.damage > max_dmg:
-                                    max_dmg = i.damage
-                                    best_weapon = i
-                        pAttack = i.damage
-                        response = "Attacked {} with {} for {} damage, took {}. You have {} hp remaining".format(NPC,
-                                                                                                            i, pAttack,
-                                                                                                            Game.currentRoom.enemiesDamage[NPC],
-                                                                                                                 player.hp)
-                        # Check if the enemy was defeated
-                        if (n > len(Game.currentRoom.enemies)):
-                            # subtract from player good/bad rating for defeating NPC
-                            player.rating -= 25
-                            # set the response and break
-                            response = "You slain {}".format(NPC)
-                            break
+                        else:
+                            if (x > Game.currentRoom.enemies[enemy] and enemy == "villager"):
+                                Game.currentRoom.NPCs[enemy] = "You fiend!"
 
-                        elif (player.hp <= 0):
-                            Game.currentRoom = None
 
             elif (verb == "talk"):
                 # default response
                 response = "I don't see that NPC."
-
                 # check currentRoom's creatures
                 for NPC in Game.currentRoom.enemies:
                     if (noun == NPC):
                         # set the response
-                        # calculate the attack sequence
-                        if noun == "villager":
-                            response = "Welcome to town. Please don't disrupt our work, we have enough stress to deal with."
+                        response = Game.currentRoom.NPCs[NPC]
 
-            # call the update for display
-            self.setGameStatus(response)
-            self.setRoomImage()
-            Game.gameplay_player_input.delete(0, END)
+                    for item in Game.currentRoom.NPCitems:
+                        if Game.currentRoom.NPCitems[item] == "key":
+                            response += "\nI have a key!"
+                            response += "\n\nWould you like to take it? (take key / no)"
+
+        # call the update for display
+        self.setGameStatus(response)
+        self.setRoomImage()
+        Game.gameplay_player_input.delete(0, END)
 
     def processMenu(self, event):
         # set a default response
-        response = "\n" * 8 + "-Play-\n-Help-\n-Quit-" + "\n" * 8 + "I don't understand. Try one word. Valid words are play, help, and quit."
+        response = "NAME IN DEVELOPMENT" + "\n" * 8 + "-Play-\n-Help-\n-Quit-" + "\n" * 8 + "I don't understand. Try one word. Valid words are play, help, and quit."
 
         # get the command input from the GUI
         action = Game.menu_player_input.get()
@@ -910,101 +1054,94 @@ class Game(Frame):
                 Game.menu_text_frame.destroy()
                 g.play()
 
-            if command == "help":
+            elif command == "help":
                 response = " "
                 response += '#' * 80 + "\n"
-                response += "Type a command such as 'go' then any compass direction, such as 'east',\n"
-                response += "to navigate the map of the cube puzzle.\n"
+                response += "To move around, type a command such as 'go' then any compass direction, \n"
+                response += "such as 'east' that is displayed, on the menu to navigate \n"
+                response += "the map of the cube puzzle.\n"
                 response += "Inputs such as 'look' or 'take' will\n"
-                response += "let you interact with items in the area.\n"
+                response += "let you interact with items in the area displayed with 'you see'.\n"
                 response += "Interacting with villagers or any other NPC\n"
                 response += "will require you to type 'talk' followed by\n"
                 response += "the name of the NPC.\n"
+                response += "to initiate combat, type 'attack' then the name of the creature dsiplayed\n"
                 response += "Please type in lowercase for an easier playthrough.\n\n"
                 response += "Thanks for playing and have fun!\n"
                 response += '#' * 80 + "\n"
                 response += "     Type 'back' to return to the main menu.     \n"
                 response += '#' * 80 + "\n"
 
-            if command == "back":
+            elif command == "back":
                 response = ""
 
-            if command == "quit":
+            elif command == "quit":
                 sys.exit()
 
-            # call the update for display
-            Game.menu_player_input.delete(0, END)
-            self.setMenuStatus(response)
+        # call the update for display
+        Game.menu_player_input.delete(0, END)
+        self.setMenuStatus(response)
 
     def buy(self, args):
+
         if args == 1:
             if player.gold >= weaponGreatSword.value:
                 player.gold -= weaponGreatSword.value
                 player.inventory.append(weaponGreatSword)
                 player.inventoryDisplay.append(weaponGreatSword.name)
-                print "You bought Great Sword"
+                print "You bought Great Sword: "
             else:
-                print "You dont have enough gold"
+                print "Not enough gold"
+
         if args == 2:
-            if player.gold >= 10:
-                player.gold -= 10
-                player.inventory.append("Potion")
-                print "You bought Potion"
-            else:
-                print "You dont have enough gold"
-        if args == 3:
-            if player.gold >= 25:
-                player.gold -= 25
-                player.inventory.append("Key")
-                print "You bought Key"
-            else:
-                print "You dont have enough gold"
-        if args == 4:
             if player.gold >= weaponDagger.value:
                 player.gold -= weaponDagger.value
                 player.inventory.append(weaponDagger)
                 player.inventoryDisplay.append(weaponDagger.name)
                 print "You bought Dagger"
             else:
-                print "You dont have enough gold"
-        if args == 5:
+                print "Not enough gold"
+
+        if args == 3:
             if player.gold >= weaponBow.value:
                 player.gold -= weaponBow.value
                 player.inventory.append(weaponBow)
                 player.inventoryDisplay.append(weaponBow.name)
                 print "You bought Bow"
             else:
-                print "You dont have enough gold"
-        if args == 6:
+                print "Not enough gold"
+
+        if args == 4:
             if player.gold >= weaponStaff.value:
                 player.gold -= weaponStaff.value
                 player.inventory.append(weaponStaff)
                 player.inventoryDisplay.append(weaponStaff.name)
                 print "You bought Staff"
             else:
-                print "You dont have enough gold"
-        Game.response.pack_forget()
+                print "Not enough gold"
+
+        Game.shopTitle.pack_forget()
+        Game.goldLabel.pack_forget()
         Game.b1.pack_forget()
         Game.b2.pack_forget()
         Game.b3.pack_forget()
         Game.b4.pack_forget()
-        Game.b5.pack_forget()
-        Game.b6.pack_forget()
-        Game.response = Label(Game.text, text="Welcome to the Shop", font=("Arial Bold", 25))
-        Game.response = Label(Game.text, text="You have: {} Gold".format(player.gold), font= ("Arial", 10))
-        Game.response.pack()
-        Game.b1 = Button(Game.text, text="Great Sword", command=lambda: self.buy(1))
+
+        Game.shopTitle = Label(Game.text, text="Welcome to the Shop", font=("Arial Bold", 25))
+        Game.shopTitle.pack()
+        Game.goldLabel = Label(Game.text,
+                               text="You have: {} Gold".format(player.gold),
+                               font=("Arial", 10))
+        Game.goldLabel.pack()
+        Game.b1 = Button(Game.text, text="Great Sword: 100", command=lambda: self.buy(1))
         Game.b1.pack()
-        Game.b2 = Button(Game.text, text="Potion", command=lambda: self.buy(2),)
+        Game.b2 = Button(Game.text, text="Dagger: 5", command=lambda: self.buy(4))
         Game.b2.pack()
-        Game.b3 = Button(Game.text, text="Key", command=lambda: self.buy(3))
+        Game.b3 = Button(Game.text, text="Bow: 10", command=lambda: self.buy(5))
         Game.b3.pack()
-        Game.b4 = Button(Game.text, text="Dagger", command=lambda: self.buy(4))
+        Game.b4 = Button(Game.text, text="Staff: 50", command=lambda: self.buy(6))
         Game.b4.pack()
-        Game.b5 = Button(Game.text, text="Bow", command=lambda: self.buy(5))
-        Game.b5.pack()
-        Game.b6 = Button(Game.text, text="Staff", command=lambda: self.buy(6))
-        Game.b6.pack()
+
 
 ##########################################################
 # the default size of the GUI is 800x600
