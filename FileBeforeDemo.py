@@ -58,12 +58,12 @@ class Boss(object):
 
     def bossSkills(enemyBoss, eAttack):
         rand = randrange(5)
-        if(enemyBoss.name == "baddie"):
+        if(enemyBoss.name == "doom"):
             if(rand == 0):
                 player.hp -= 0
                 print "0"
             elif(rand == 1):
-                enemies["baddie"] += pAttack
+                enemies["doom"] += pAttack
             elif(rand == 2):
                 print "1"
                 player.hp -= 2 * eAttack
@@ -784,13 +784,13 @@ class Game(Frame):
 
         r99.addExit("down", r100)
         r100.addExit("up", r99)
-        r100.addEnemy("baddie", 1, 1, 1000, 0, True, True)
+        r100.addEnemy("doom", 200, 30, 1000, 0, True, True)
         r100.addExit("end", r101)
 
         # supplement code to add features to the created rooms
 
         # set the current room to r1
-        Game.currentRoom = r1
+        Game.currentRoom = r99
         Game.previousRoom = r1
 
     # sets up the GUI
@@ -860,25 +860,22 @@ class Game(Frame):
 
             Game.shopTitle = Label(Game.text, text="Welcome to the Shop", font=("Arial Bold", 25))
             Game.shopTitle.pack()
-            Game.goldLabel = Label(Game.text, text="You have: {} Gold".format(player.gold), font=("Arial", 10))
+            Game.goldLabel = Label(Game.text,
+                                   text="You have: {} Gold".format(player.gold),
+                                   font=("Arial", 10))
             Game.goldLabel.pack()
-
-            Game.b1 = Button(Game.text, text="Great Sword", command=lambda: self.buy(1))
+            Game.b1 = Button(Game.text, text="Great Sword: 100", command=lambda: self.buy(1))
             Game.b1.pack()
-            Game.b2 = Button(Game.text, text="Potion", command=lambda: self.buy(2))
+            Game.b2 = Button(Game.text, text="Dagger: 5", command=lambda: self.buy(2))
             Game.b2.pack()
-            Game.b3 = Button(Game.text, text="Key", command=lambda: self.buy(3))
+            Game.b3 = Button(Game.text, text="Bow: 10", command=lambda: self.buy(3))
             Game.b3.pack()
-            Game.b4 = Button(Game.text, text="Dagger", command=lambda: self.buy(4))
+            Game.b4 = Button(Game.text, text="Staff: 50", command=lambda: self.buy(4))
             Game.b4.pack()
-            Game.b5 = Button(Game.text, text="Bow", command=lambda: self.buy(5))
-            Game.b5.pack()
-            Game.b6 = Button(Game.text, text="Staff", command=lambda: self.buy(6))
-            Game.b6.pack()
 
         # if your rating is below 0, display the ending when you reach the final boss
         elif(Game.currentRoom.name == "Final Boss" and player.rating < 0):
-            Game.text.insert(END, "As you enter the room, you see the final boss \n"
+            Game.text.insert(END, "As you enter the room, you see Doom \n"
                              "standing before you. You think of all the \n"
                              "villagers you've murdered as he approaches you, \n"
                              "yet as he comes he seems, pleased.'My spies have taken note of your progress,' he says. 'With \n"
@@ -895,10 +892,10 @@ class Game(Frame):
 
         # if your rating is above 0 and you defeat the boss, display the ending
         elif(Game.currentRoom.name == "End" and player.rating >= 0):
-            Game.text.insert(END, "With the final boss defeated, you return to the \n"
+            Game.text.insert(END, "With Doom defeated, you return to the \n"
                              "village a hero after being showered with gifts \n"
                              "and praises you travel back to your home town. \n"
-                             "After a while the final boss' forces surrender \n"
+                             "After a while Doom's forces surrender \n"
                              "and peace returns to the land at last! \n"
                              "With your quest now ended you live a peaceful \n"
                              "life and settle down, yet prepared \n"
@@ -923,8 +920,6 @@ class Game(Frame):
                 Game.b2.pack_forget()
                 Game.b3.pack_forget()
                 Game.b4.pack_forget()
-                Game.b5.pack_forget()
-                Game.b6.pack_forget()
 
         Game.text.config(state=DISABLED)
 
@@ -1005,10 +1000,9 @@ class Game(Frame):
                                Game.currentRoom = Game.currentRoom.exits[noun]
                            else:
                                response = "You must defeat the boss before you can go in"
-                       if (noun == "east" and Game.currentRoom.name == "East Path 3"):
+                       elif (noun == "east" and Game.currentRoom.name == "East Path 3"):
                            # checks to make sure key is in inventory
                            if ("meat" in player.inventoryDisplay):
-                               response = None
                                Game.currentRoom = Game.currentRoom.exits[noun]
                            # if they do not have key then they cannot enter the room
                            else:
@@ -1041,8 +1035,9 @@ class Game(Frame):
                        elif (noun == "west" and Game.currentRoom.name == "Fortress Encounter NNW"):
                            if (player.gold >= 50):
                                player.gold -= 50
-                               response = "The guards let you pass."
+                               response = "The guards let you pass for 50 gold, the treasure house contains 150 gold!."
                                Game.currentRoom = Game.currentRoom.exits[noun]
+                               player.gold += 150
                            # if they do not have key then they cannot enter the room
                            else:
                                response = "The guards tell you that you cannot enter."
@@ -1208,48 +1203,36 @@ class Game(Frame):
                 player.gold -= weaponGreatSword.value
                 player.inventory.append(weaponGreatSword)
                 player.inventoryDisplay.append(weaponGreatSword.name)
-                print "You bought Great Sword"
+                print "You bought Great Sword: "
             else:
-                print "You dont have enough gold"
+                print "Not enough gold"
+
         if args == 2:
-            if player.gold >= 10:
-                player.gold -= 10
-                player.inventory.append("Potion")
-                print "You bought Potion"
-            else:
-                print "You dont have enough gold"
-        if args == 3:
-            if player.gold >= 25:
-                player.gold -= 25
-                player.inventory.append("Key")
-                print "You bought Key"
-            else:
-                print "You dont have enough gold"
-        if args == 4:
             if player.gold >= weaponDagger.value:
                 player.gold -= weaponDagger.value
                 player.inventory.append(weaponDagger)
                 player.inventoryDisplay.append(weaponDagger.name)
                 print "You bought Dagger"
             else:
-                print "You dont have enough gold"
+                print "Not enough gold"
 
-        if args == 5:
+        if args == 3:
             if player.gold >= weaponBow.value:
                 player.gold -= weaponBow.value
                 player.inventory.append(weaponBow)
                 player.inventoryDisplay.append(weaponBow.name)
                 print "You bought Bow"
             else:
-                print "You dont have enough gold"
-        if args == 6:
+                print "Not enough gold"
+
+        if args == 4:
             if player.gold >= weaponStaff.value:
                 player.gold -= weaponStaff.value
                 player.inventory.append(weaponStaff)
                 player.inventoryDisplay.append(weaponStaff.name)
                 print "You bought Staff"
             else:
-                print "You dont have enough gold"
+                print "Not enough gold"
 
         Game.shopTitle.pack_forget()
         Game.goldLabel.pack_forget()
@@ -1257,25 +1240,21 @@ class Game(Frame):
         Game.b2.pack_forget()
         Game.b3.pack_forget()
         Game.b4.pack_forget()
-        Game.b5.pack_forget()
-        Game.b6.pack_forget()
 
         Game.shopTitle = Label(Game.text, text="Welcome to the Shop", font=("Arial Bold", 25))
         Game.shopTitle.pack()
-        Game.goldLabel = Label(Game.text, text="You have: {} Gold; you have {} reputation".format(player.gold, player.rating), font=("Arial", 10))
+        Game.goldLabel = Label(Game.text,
+                               text="You have: {} Gold".format(player.gold),
+                               font=("Arial", 10))
         Game.goldLabel.pack()
-        Game.b1 = Button(Game.text, text="Great Sword", command=lambda: self.buy(1))
+        Game.b1 = Button(Game.text, text="Great Sword: 100", command=lambda: self.buy(1))
         Game.b1.pack()
-        Game.b2 = Button(Game.text, text="Potion", command=lambda: self.buy(2), )
+        Game.b2 = Button(Game.text, text="Dagger: 5", command=lambda: self.buy(2))
         Game.b2.pack()
-        Game.b3 = Button(Game.text, text="Key", command=lambda: self.buy(3))
+        Game.b3 = Button(Game.text, text="Bow: 10", command=lambda: self.buy(3))
         Game.b3.pack()
-        Game.b4 = Button(Game.text, text="Dagger", command=lambda: self.buy(4))
+        Game.b4 = Button(Game.text, text="Staff: 50", command=lambda: self.buy(4))
         Game.b4.pack()
-        Game.b5 = Button(Game.text, text="Bow", command=lambda: self.buy(5))
-        Game.b5.pack()
-        Game.b6 = Button(Game.text, text="Staff", command=lambda: self.buy(6))
-        Game.b6.pack()
 
 ##########################################################
 # the default size of the GUI is 800x600
