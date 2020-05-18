@@ -87,7 +87,7 @@ class Player(object):
         self.inventory = [weaponRock]
         self.hp = 100
         self.mp = 100
-        self.xp = 0
+        self.xp = 1
         self.lvl = 1
         self.nextlvl = 25
         self.damage = 10
@@ -127,14 +127,20 @@ class Player(object):
 
     def Level(self):
         while self._xp >= self._nextlvl:
-            print "lvl: {}".format(self.lvl)
             self.lvl += 1
-            print "Lvl: {}" .format(self.lvl) 
-            print "next lvl {}".format(self.nextlvl)
             self._xp = self._xp - self._nextlvl
+            self.hp += 15
+            self.nextlvl = round(self.nextlvl * 1.2)
+            weaponRock.damage += 5
+            weaponBow.damage += 5
+            weaponDagger.damage += 5
+            weaponGreatSword.damage += 5
+            weaponStaff.damage += 5
     
             print "next lvl {}".format(self.nextlvl)
-        return self.lvl , self.nextlvl, self.xp
+        
+
+        return self.lvl , self.nextlvl, self.xp, self.hp, self.damage
         
 
 
@@ -443,7 +449,7 @@ class Game(Frame):
         r6.addExit("south", r5)
         r6.addExit("east", r7)
         r6.addExit("west", r8)
-        r6.addEnemy("boar", 7, 7, 5, 150)
+        r6.addEnemy("boar", 7, 7, 5, 15)
         r7.addExit("west", r6)
         r7.addExit("north", r9)
         r8.addExit("east", r6)
@@ -852,8 +858,8 @@ class Game(Frame):
         else:
 
             Game.text.insert(END, str(Game.currentRoom) + "\nYou are carrying: " + str(
-                player.inventoryDisplay) + "\n\n" + "\n You have {} gold; you have {} reputation;\n You are level {}".format(player.gold,
-                                                                                                         player.rating, player.lvl) + "\n\n" + status)
+                player.inventoryDisplay) + "\n\n" + "\n You have {} gold; you have {} reputation;\n You are level {}, {}% to next level".format(player.gold,
+                                                                                                         player.rating, player.lvl, int(((player.xp / player.nextlvl )))) + "\n\n" + status)
             Game.text.config(state=DISABLED)
             Game.text.tag_add("center", "1.0", "end")
 
