@@ -91,7 +91,7 @@ class Player(object):
         self.inventoryDisplay = [weaponRock.name]
         self.inventory = [weaponRock]
         self.hp = 100
-        self.xp = 1
+        self.xp = 0
         self.lvl = 1
         self.nextlvl = 25
         self.damage = 10
@@ -131,7 +131,7 @@ class Player(object):
     def nextlvl(self, value):
         self._nextlvl = value
 
-    def Level(self):
+    def level(self):
         while self._xp >= self._nextlvl:
             self.lvl += 1
             self._xp = self._xp - self._nextlvl
@@ -167,6 +167,7 @@ class Room(object):
         self.enemiesDamage = {}
         self.enemiesGold = {}
         self.enemiesCheck = {}
+        self.enemiesXP= {}
         self.enemiesName = []
         self.NPCs = {}
 
@@ -267,14 +268,6 @@ class Room(object):
     def NPCs(self, value):
         self._NPCs = value
 
-    @property
-    def NPCitems(self):
-        return self._NPCitems
-
-    @NPCitems.setter
-    def NPCitems(self, value):
-        self._NPCitems = value
-
     # creates enemies by creating dictionaries with assigned values for interracting with them
     def addEnemy(self, name, hp, damage, gold, Xp, boss = False, finalBoss = False):
         # append the enemy to the list
@@ -292,14 +285,13 @@ class Room(object):
         self._enemies.remove(enemy)
 
     # creates NPCs by creating dictionaries with assigned values for interracting with them
-    def addNPC(self, name, hp, damage, gold, description, Xp, item = None):
+    def addNPC(self, name, hp, damage, gold, description, Xp):
         # append the NPC to the list
         self._enemies[name] = hp
         self._enemiesDamage[name] = damage
         self._enemiesGold[name] = gold
         self._NPCs[name] = description
         self._enemiesXP[name] = Xp
-        self._NPCitems[name] = Xp
         self._enemiesCheck[name] = False
         self._enemiesName.append(name)
 
@@ -417,7 +409,11 @@ class Game(Frame):
         r1.addItem("sign", "east is the shop, west is the slums, south is the residential area and north is the wild area!")
         r2.addExit("west", r1)
         r3.addExit("east", r1)
+        r3.addNPC("villager", 7, 2, 10, "Hey hero! Please accept this 'meat', maybe you can make some use out of it.", 10)
+        r3.addGrabbable("meat")
         r4.addExit("north", r1)
+        r4.addNPC("villager", 7, 2, 10, "Oh, hello hero! I happened to stumble across this 'key', maybe it can help you out?", 10)
+        r4.addGrabbable("key")
         main_menu.addExit("play", r1)
 
         # supplement code to add features to the created rooms
@@ -914,7 +910,8 @@ class Game(Frame):
         # the default display of what you have as you traverse the rooms
         else:
 
-            Game.text.insert(END, str(Game.currentRoom) + "\nYou are carrying: " + str(player.inventoryDisplay) + "\n\n" + "\n You have {} gold; you have {} reputation".format(player.gold, player.rating) + "\n\n" + status)
+            Game.text.insert(END, str(Game.currentRoom) + "\nYou are carrying: " + str(player.inventoryDisplay) + "\n\n" + "\n You have {} gold; you have {} reputation; \n"
+                             "you have {} XP; you are level {}".format(player.gold, player.rating, player.xp, player.lvl) + "\n\n" + status)
             Game.text.config(state=DISABLED)
             Game.text.tag_add("center", "1.0", "end")
 
@@ -1010,7 +1007,7 @@ class Game(Frame):
                                response = "You must defeat the boss before you can go in"
                        if (noun == "east" and Game.currentRoom.name == "East Path 3"):
                            # checks to make sure key is in inventory
-                           if ("meat" in player.inventory):
+                           if ("meat" in player.inventoryDisplay):
                                response = None
                                Game.currentRoom = Game.currentRoom.exits[noun]
                            # if they do not have key then they cannot enter the room
@@ -1018,7 +1015,7 @@ class Game(Frame):
                                response = "The guard won't let you pass."
 
                        elif (noun == "west" and Game.currentRoom.name == "West Path 3"):
-                           if ("key" in player.inventory):
+                           if ("key" in player.inventoryDisplay):
                                response = "You're in."
                                Game.currentRoom = Game.currentRoom.exits[noun]
                            # if they do not have key then they cannot enter the room
@@ -1077,6 +1074,8 @@ class Game(Frame):
                     if (noun == grabbable):
                         # set the response
                         response = "{} grabbed".format(grabbable)
+                        # adds the item to the inventory
+                        player.inventoryDisplay.append(grabbable)
                         # remove it from the room's grabbables
                         Game.currentRoom.delGrabbable(grabbable)
                         break
@@ -1109,8 +1108,8 @@ class Game(Frame):
                         # Check if the enemy was defeated
                         if (n > len(Game.currentRoom.enemies)):
                             player.gold += Game.currentRoom.enemiesGold[enemy]
-                            player.xp += Game.currentRoom.enemiesXP[enemies]
-                            player.Level()
+                            player.xp += Game.currentRoom.enemiesXP[enemy]
+                            player.level()
                             if(Game.currentRoom.enemiesCheck[enemy] == False):
                                 player.rating += 10
                             else:
