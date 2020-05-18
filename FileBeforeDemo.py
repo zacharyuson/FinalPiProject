@@ -999,52 +999,52 @@ class Game(Frame):
                            if(len(Game.currentRoom.enemies) > len(Game.currentRoom.enemies)):
                                Game.currentRoom = Game.currentRoom.exits[noun]
                            else:
-                               response = "You must defeat the boss before you can go in"
-                       if (noun == "west" and Game.currentRoom.name == "West Path 3"):
-                           if ("key" in player.inventoryDisplay):
-                               response = "You're in."
-                               Game.currentRoom = Game.currentRoom.exits[noun]
-                           # if they do not have key then they cannot enter the room
-                           else:
-                               response = "Seems to need a key to get in."
-                       elif (noun == "east" and Game.currentRoom.name == "East Path 3"):
-                           # checks to make sure key is in inventory
-                           if ("meat" in player.inventoryDisplay):
-                               Game.currentRoom = Game.currentRoom.exits[noun]
-                           # if they do not have key then they cannot enter the room
-                           else:
-                               response = "The guard won't let you pass." 
-                       elif (noun == "east" and Game.currentRoom.name == "Fortress Encounter NNE"):
-                           if (player.gold >= 50):
-                               player.gold -= 50
-                               response = "The guards let you pass."
-                               Game.currentRoom = Game.currentRoom.exits[noun]
-                           # if they do not have key then they cannot enter the room
-                           else:
-                               response = "The guards tell you that you cannot enter."
-                       elif (noun == "west" and Game.currentRoom.name == "Fortress Encounter SSW"):
-                           if (player.gold >= 50):
-                               player.gold -= 50
-                               response = "The guards let you pass."
-                               Game.currentRoom = Game.currentRoom.exits[noun]
-                           # if they do not have key then they cannot enter the room
-                           else:
-                               response = "The guards tell you that you cannot enter."
-
-                       elif (noun == "west" and Game.currentRoom.name == "Fortress Encounter NNW"):
-                           if (player.gold >= 50):
-                               player.gold -= 50
-                               response = "The guards let you pass for 50 gold, the treasure house contains 150 gold!."
-                               Game.currentRoom = Game.currentRoom.exits[noun]
-                               player.gold += 150
-                           # if they do not have key then they cannot enter the room
-                           else:
-                               response = "The guards tell you that you cannot enter."
-                    
+                               response = "You must defeat the boss before you can go in"                    
                     else:
                         if (Game.currentRoom.exits[noun] == Game.previousRoom):
                             Game.previousRoom = Game.currentRoom
                             Game.currentRoom = Game.currentRoom.exits[noun]
+                            
+                if (noun == "west" and Game.currentRoom.name == "West Path 3"):
+                    if ("key" in player.inventoryDisplay):
+                        response = "You're in."
+                        Game.currentRoom = Game.currentRoom.exits[noun]
+                    # if they do not have key then they cannot enter the room
+                    else:
+                        response = "Seems to need a key to get in."
+                elif(noun == "east" and Game.currentRoom.name == "East Path 3"):
+                    # checks to make sure key is in inventory
+                    if ("meat" in player.inventoryDisplay):
+                        Game.currentRoom = Game.currentRoom.exits[noun]
+                    # if they do not have key then they cannot enter the room
+                    else:
+                        response = "The guard won't let you pass." 
+                elif (noun == "east" and Game.currentRoom.name == "Fortress Encounter NNE"):
+                    if (player.gold >= 50):
+                        player.gold -= 50
+                        response = "The guards let you pass."
+                        Game.currentRoom = Game.currentRoom.exits[noun]
+                    # if they do not have key then they cannot enter the room
+                    else:
+                        response = "The guards tell you that you cannot enter."
+                elif (noun == "west" and Game.currentRoom.name == "Fortress Encounter SSW"):
+                    if (player.gold >= 50):
+                            player.gold -= 50
+                            response = "The guards let you pass."
+                            Game.currentRoom = Game.currentRoom.exits[noun]
+                    # if they do not have key then they cannot enter the room
+                    else:
+                        response = "The guards tell you that you cannot enter."
+
+                elif (noun == "west" and Game.currentRoom.name == "Fortress Encounter NNW"):
+                    if (player.gold >= 50):
+                        player.gold -= 50
+                        response = "The guards let you pass for 50 gold, the treasure house contains 150 gold!."
+                        Game.currentRoom = Game.currentRoom.exits[noun]
+                        player.gold += 150
+                    # if they do not have key then they cannot enter the room
+                    else:
+                        response = "The guards tell you that you cannot enter."
                 
                             
                         
