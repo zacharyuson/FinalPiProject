@@ -790,7 +790,7 @@ class Game(Frame):
         # supplement code to add features to the created rooms
 
         # set the current room to r1
-        Game.currentRoom = r99
+        Game.currentRoom = r1
         Game.previousRoom = r1
 
     # sets up the GUI
@@ -931,7 +931,7 @@ class Game(Frame):
         Game.text.tag_configure("center", justify='center')
 
         if (status == ""):
-            Game.text.insert(END, "NAME IN DEVELOPMENT")
+            Game.text.insert(END, "The Dark Doom")
             Game.text.insert(END, "\n" * 8 + "-Play-\n-Help-\n-Quit-")
             Game.text.config(state=DISABLED)
 
@@ -1000,21 +1000,20 @@ class Game(Frame):
                                Game.currentRoom = Game.currentRoom.exits[noun]
                            else:
                                response = "You must defeat the boss before you can go in"
-                       elif (noun == "east" and Game.currentRoom.name == "East Path 3"):
-                           # checks to make sure key is in inventory
-                           if ("meat" in player.inventoryDisplay):
-                               Game.currentRoom = Game.currentRoom.exits[noun]
-                           # if they do not have key then they cannot enter the room
-                           else:
-                               response = "The guard won't let you pass."
-
-                       elif (noun == "west" and Game.currentRoom.name == "West Path 3"):
+                       if (noun == "west" and Game.currentRoom.name == "West Path 3"):
                            if ("key" in player.inventoryDisplay):
                                response = "You're in."
                                Game.currentRoom = Game.currentRoom.exits[noun]
                            # if they do not have key then they cannot enter the room
                            else:
                                response = "Seems to need a key to get in."
+                       elif (noun == "east" and Game.currentRoom.name == "East Path 3"):
+                           # checks to make sure key is in inventory
+                           if ("meat" in player.inventoryDisplay):
+                               Game.currentRoom = Game.currentRoom.exits[noun]
+                           # if they do not have key then they cannot enter the room
+                           else:
+                               response = "The guard won't let you pass." 
                        elif (noun == "east" and Game.currentRoom.name == "Fortress Encounter NNE"):
                            if (player.gold >= 50):
                                player.gold -= 50
@@ -1146,7 +1145,7 @@ class Game(Frame):
     # How the menu processes its commands and what is displayed and done when the correct commands are typed
     def processMenu(self, event):
         # set a default response
-        response = "NAME IN DEVELOPMENT" + "\n" * 8 + "-Play-\n-Help-\n-Quit-" + "\n" * 8 + "I don't understand. Try one word. Valid words are play, help, and quit."
+        response = "The Dark Doom" + "\n" * 8 + "-Play-\n-Help-\n-Quit-" + "\n" * 8 + "I don't understand. Try one word. Valid words are play, help, and quit."
 
         # get the command input from the GUI
         action = Game.menu_player_input.get()
